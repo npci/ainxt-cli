@@ -1,0 +1,21 @@
+[package]
+license = "Apache-2.0"
+name = "ainxt-session-risk"
+version = "0.1.0"
+edition.workspace = true
+description = "Session-scoped risk ledger: budgets, failure-loop detection, artifact provenance, freeze."
+
+[dependencies]
+ainxt-intent = { workspace = true }
+blake3 = { workspace = true }
+fs2 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

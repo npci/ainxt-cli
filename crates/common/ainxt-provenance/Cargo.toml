@@ -1,0 +1,15 @@
+[package]
+license = "Apache-2.0"
+name = "ainxt-provenance"
+version = "0.1.0"
+edition.workspace = true
+description = "Trust-provenance lattice: min-tier propagation + monotonic session descent (AINXT-SEC-001 §5.4, INV-4)"
+
+[dependencies]
+ainxt-policy-types = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,28 @@
+[package]
+license = "Apache-2.0"
+name = "ainxt-workspace-client"
+version = "0.1.0"
+edition.workspace = true
+description = "Lightweight typed client for hub-proxied workspace.* RPCs (shared by ainxt-shell proxy mode and other consumers)"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
+tracing = { workspace = true }
+ainxt-computer-hub-sdk = { workspace = true }
+ainxt-workspace-types = { workspace = true }
+ainxt-tool-protocol = { workspace = true }
+ainxt-tool-runtime = { workspace = true }
+
+[features]
+default = []
+default-bazel = []
+[dev-dependencies]
+schemars = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt", "test-util"] }
+ainxt-tool-types = { workspace = true }
+
+[lints]
+workspace = true

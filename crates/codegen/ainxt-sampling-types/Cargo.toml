@@ -1,0 +1,23 @@
+[package]
+license = "Apache-2.0"
+name = "ainxt-sampling-types"
+version = "0.1.0"
+edition.workspace = true
+description = "Pure data types for the ainxt sampling / chat-completion API layer"
+
+[dependencies]
+async-openai = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
+reqwest = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["preserve_order"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+ainxt-compaction = { path = "../../common/ainxt-compaction" }
+ainxt-tools = { path = "../ainxt-tools" }
+
+[dev-dependencies]
+assert_matches = { workspace = true }
+
+[lints]
+workspace = true

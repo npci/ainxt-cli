@@ -1,0 +1,19 @@
+{
+    "name": "@ainxt/ainxt-win32-arm64",
+    "version": "0.2.0-dev",
+    "description": "win32-arm64 binary for @ainxt/ainxt. Do not install directly; install @ainxt/ainxt instead.",
+    "license": "Apache-2.0",
+    "files": [
+        "bin/",
+        "THIRD_PARTY_NOTICES.md"
+    ],
+    "os": [
+        "win32"
+    ],
+    "cpu": [
+        "arm64"
+    ],
+    "publishConfig": {
+        "access": "public"
+    }
+}
