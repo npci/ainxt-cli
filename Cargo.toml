@@ -1,0 +1,446 @@
+# Auto-generated workspace root. Prefer editing per-crate Cargo.toml files.
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/build/ainxt-proto-build",
+    "crates/codegen/ptyctl",
+    "crates/codegen/ptyctl-cli",
+    "crates/codegen/ainxt-acp-lib",
+    "crates/codegen/ainxt-agent-lifecycle",
+    "crates/codegen/ainxt-chat-state",
+    "crates/codegen/ainxt-codebase-graph",
+    "crates/codegen/ainxt-crash-handler",
+    "crates/codegen/ainxt-fast-worktree",
+    "crates/codegen/ainxt-file-utils",
+    "crates/codegen/ainxt-fsnotify",
+    "crates/codegen/ainxt-gix-status",
+    "crates/codegen/ainxt-agent",
+    "crates/codegen/ainxt-announcements",
+    "crates/codegen/ainxt-auth",
+    "crates/codegen/ainxt-config",
+    "crates/codegen/ainxt-config-types",
+    "crates/codegen/ainxt-env",
+    "crates/codegen/ainxt-hooks",
+    "crates/codegen/ainxt-http",
+    "crates/codegen/ainxt-markdown",
+    "crates/codegen/ainxt-markdown-core",
+    "crates/codegen/ainxt-mcp",
+    "crates/codegen/ainxt-memory",
+    "crates/codegen/ainxt-mermaid",
+    "crates/codegen/ainxt-pager",
+    "crates/codegen/ainxt-pager-bin",
+    "crates/codegen/ainxt-pager-minimal",
+    "crates/codegen/ainxt-pager-pty-harness",
+    "crates/codegen/ainxt-pager-render",
+    "crates/codegen/ainxt-paths",
+    "crates/codegen/ainxt-policy-fetch",
+    "crates/codegen/ainxt-plugin-marketplace",
+    "crates/codegen/ainxt-sampler",
+    "crates/codegen/ainxt-sampling-types",
+    "crates/codegen/ainxt-sandbox",
+    "crates/codegen/ainxt-secrets",
+    "crates/codegen/ainxt-shared",
+    "crates/codegen/ainxt-shell",
+    "crates/codegen/ainxt-shell-base",
+    "crates/codegen/ainxt-shell-session-support",
+    "crates/codegen/ainxt-subagent-resolution",
+    "crates/codegen/ainxt-telemetry",
+    "crates/codegen/ainxt-test-support",
+    "crates/codegen/ainxt-tools",
+    "crates/codegen/ainxt-tools-api",
+    "crates/codegen/ainxt-update",
+    "crates/codegen/ainxt-version",
+    "crates/codegen/ainxt-voice",
+    "crates/codegen/ainxt-workspace",
+    "crates/codegen/ainxt-workspace-client",
+    "crates/codegen/ainxt-workspace-types",
+    "crates/codegen/ainxt-hooks-plugins-types",
+    "crates/codegen/ainxt-hunk-tracker",
+    "crates/codegen/ainxt-mixpanel",
+    "crates/codegen/ainxt-prompt-queue",
+    "crates/codegen/ainxt-ratatui-inline",
+    "crates/codegen/ainxt-ratatui-textarea",
+    "crates/codegen/ainxt-sqlite-journal",
+    "crates/codegen/ainxt-system-power",
+    "crates/codegen/ainxt-token-estimation",
+    "crates/codegen/ainxt-tracing-macros",
+    "crates/codegen/ainxt-tty-utils",
+    "crates/common/ainxt-circuit-breaker",
+    "crates/common/ainxt-computer-hub-core",
+    "crates/common/ainxt-computer-hub-mcp-adapter",
+    "crates/common/ainxt-computer-hub-sdk",
+    "crates/common/ainxt-compaction",
+    "crates/common/ainxt-interjection-core",
+    "crates/common/ainxt-test-utils",
+    "crates/common/ainxt-tool-protocol",
+    "crates/common/ainxt-tool-runtime",
+    "crates/common/ainxt-tool-types",
+    "crates/common/ainxt-tracing",
+    "crates/common/ainxt-policy-types",
+    "crates/common/ainxt-policy",
+    "crates/common/ainxt-redteam",
+    "crates/common/ainxt-audit",
+    "crates/common/ainxt-provenance",
+    "crates/common/ainxt-shell-ast",
+    "crates/common/ainxt-intent",
+    "crates/common/ainxt-session-risk",
+    "crates/common/ainxt-pep",
+    "prod/mc/cli-chat-proxy-types",
+    "third_party/dagre_rust",
+    "third_party/graphlib_rust",
+    "third_party/mermaid-to-svg",
+    "third_party/ordered_hashmap",
+]
+
+[workspace.package]
+edition = "2024"
+license = "Apache-2.0"
+# Not published to crates.io individually — internal implementation crates of
+# the `ainxt` binary only.
+publish = false
+
+[workspace.dependencies]
+agent-client-protocol = { version = "0.10.4", features = ["unstable"] }
+alacritty_terminal = "0.26.0"
+ansi-to-tui = "8.0.1"
+ansi-width = "0.1"
+anstyle = "1.0"
+anstyle-lossy = "1.1.4"
+anstyle-parse = "0.2"
+anstyle-syntect = "1.0.4"
+anyhow = { version = "1", features = ["backtrace"] }
+arboard = "3.6"
+arc-swap = "1.7"
+assert_matches = "1.5.0"
+async-compression = { version = "0.4.17", default-features = false, features = ["gzip", "zstd", "tokio"] }
+async-lsp = { version = "0.2.3", features = ["tokio", "tracing"] }
+async-openai = { version = "0.33.0", features = ["responses"] }
+async-stream = "0.3"
+async-trait = "0.1"
+axum = { version = "0.8", features = ["macros", "ws"] }
+backon = { version = "1.6" }
+backtrace = "0.3"
+base64 = "0.22"
+blake3 = "1"
+bytes = { version = "1", features = ["serde"] }
+camino = "1.1.10"
+chrono = "0.4"
+clap = { version = "4", features = ["derive", "env"] }
+clap_complete = { version = "4" }
+colored_json = "5"
+core-foundation = "0.10"
+crc32fast = "1.4"
+criterion = "0.6"
+crossbeam = "0.8"
+crossterm = "0.29"
+cryptify = "3.2"
+dashmap = "6"
+derive_more = { version = "2", features = ["add", "add_assign", "debug", "deref", "deref_mut", "display", "from", "from_str", "into", "into_iterator", "try_into"] }
+dirs = "5.0"
+documented = "0.9"
+dotenvy = "0.15"
+dunce = "1"
+educe = "0.6.0"
+enum_delegate = "0.2"
+env_logger = "0.11"
+eventsource-stream = "0.2"
+fastrace = { version = "0.7" }
+fastrace-opentelemetry = { version = "0.18" }
+fastrace-reqwest = { version = "0.2" }
+fastrace-tonic = { version = "0.1" }
+fastrand = "2"
+filetime = "0.2.25"
+flate2 = { version = "1", default-features = false, features = ["zlib-rs"] }
+fontdb = "0.23"
+fs2 = "0.4"
+futures = "0.3"
+futures-util = "0.3"
+fuzzy-matcher = "0.3.7"
+gcloud-storage = { version = "1.3.0", default-features = false, features = ["auth", "jwt-aws-lc-rs", "external-account"] }
+gethostname = "1"
+gix = { version = "0.83", default-features = false, features = ["sha1"] }
+glob = "0.3"
+globset = "0.4"
+htmd = "0.5.4"
+html-escape = "0.2"
+http = "1"
+http-body-util = "0.1"
+humantime-serde = "1"
+ignore = "0.4"
+image = { version = "0.25.9", default-features = false }
+indexmap = { version = "2", features = ["serde"] }
+indicatif = "0.18"
+infer = "0.19.0"
+insta = "1"
+itertools = "0.14"
+jsonschema = "0.30.0"
+libc = "0.2"
+linkify = "0.10"
+lipsum = "0.9"
+log = { version = "0.4", features = ["kv", "kv_unstable"] }
+md5 = "0.8"
+mermaid-to-svg = { path = "third_party/mermaid-to-svg" }
+minijinja = "2.9"
+mockito = "1"
+moka = "0.12"
+nix = { version = "0.30", features = ["poll", "process", "signal", "sched", "term", "mount", "fs", "ioctl", "mman", "reboot", "user"] }
+notify = "8"
+notify-debouncer-mini = "0.6"
+nucleo = "0.5.0"
+nucleo-matcher = "0.3.1"
+num_cpus = "1"
+oauth2 = "5"
+obfstr = "0.4"
+once_cell = "1"
+opentelemetry = "0.32"
+opentelemetry-http = { version = "0.32", features = ["reqwest-blocking"] }
+opentelemetry-otlp = { version = "0.32", features = ["grpc-tonic", "reqwest-blocking-client", "tls-roots"] }
+opentelemetry-proto = { version = "0.32", features = ["gen-tonic"] }
+opentelemetry_sdk = { version = "0.32.1", features = ["spec_unstable_metrics_views"] }
+parking_lot = "0.12.4"
+pbjson-build = "0.9"
+pdf_oxide = { version = "0.3.43", features = ["rendering"] }
+petgraph = { version = "0.6.5", default-features = false, features = ["serde-1", "stable_graph"] }
+portable-pty = "0.9"
+pprof = "0.15"
+pretty_assertions = "1"
+prometheus = { version = "0.14", features = ["process"] }
+prost = "0.14"
+prost-build = "0.14"
+pulldown-cmark = "0.13"
+quick-xml = "0.42"
+rand = "0.9"
+ratatui = { version = "0.30", default-features = false, features = [
+    "crossterm_0_29",
+    "underline-color",
+    "all-widgets",
+    "macros",
+    "layout-cache",
+] }
+ratatui-core = "0.1"
+rayon = "1"
+reflink-copy = "0.1"
+regex = "1"
+reqwest = { version = "0.12", features = ["rustls-tls", "stream", "json", "multipart", "http2", "blocking", "socks"], default-features = false }
+reqwest-middleware = { version = "0.4.1", features = ["json", "multipart"] }
+resvg = { version = "0.47", default-features = false, features = ["text"] }
+ring = "0.17"
+rsa = "0.9"
+runfiles = "0.1"
+rustc-hash = "2"
+schemars = "1"
+scraper = "0.23"
+semver = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_path_to_error = "0.1"
+serde_yaml = "0.9"
+serial_test = "3"
+sha2 = { version = "0.10", features = ["force-soft"] }
+shlex = "1"
+signal-hook = "0.3"
+similar = "2.7"
+siphasher = "1"
+smallvec = "1"
+strip-ansi-escapes = "0.2.1"
+strum = { version = "0.27", features = ["derive"] }
+supports-color = "3.0"
+syntect = { version = "5.3", default-features = false, features = [
+    "parsing",
+    "plist-load",
+    "regex-fancy",
+] }
+tar = "0.4"
+tempfile = "3"
+terminput = "0.3"
+termwiz = { version = "0.23", default-features = false }
+textwrap = "0.16"
+thiserror = "2"
+tikv-jemalloc-ctl = "0.6"
+tikv-jemalloc-sys = "0.6"
+tikv-jemallocator = { version = "0.6", features = ["profiling", "unprefixed_malloc_on_supported_platforms"] }
+time = "0.3"
+tiny-skia = "0.12"
+tokio = { version = "1", features = ["full"] }
+tokio-retry = "0.3"
+tokio-stream = "0.1"
+tokio-tungstenite = "0.27"
+tokio-util = { version = "0.7", features = ["rt"] }
+toml = "0.9"
+toml_edit = "0.22"
+tonic = { version = "0.14", features = ["tls-aws-lc", "gzip", "deflate", "zstd"] }
+tonic-prost = "0.14"
+tonic-prost-build = "0.14"
+tower = "0.5"
+tower-http = "0.6"
+tracing = "0.1"
+tracing-opentelemetry = "0.33"
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["env-filter", "smallvec", "tracing-log", "std", "ansi"] }
+ts-rs = "12.0"
+tui-scrollbar = "0.2"
+two-face = { version = "0.4", default-features = false, features = ["syntect-fancy"] }
+unicode-segmentation = "1.12.0"
+unicode-width = "0.2"
+url = "2"
+urlencoding = "2"
+uuid = { version = "1", features = ["serde", "v4", "v5"] }
+vte = "0.15.0"
+wait-timeout = "0.2"
+walkdir = "2"
+webbrowser = { version = "1.0.4" }
+which = "8"
+whoami = "1.4"
+# Kept at 0.62 to match the `windows` version `process-wrap` builds its
+# `CreationFlags(PROCESS_CREATION_FLAGS)` on. When these diverge, cargo links
+# two copies of the crate and the Windows target fails to compile with
+# "expected `PROCESS_CREATION_FLAGS`, found a different `PROCESS_CREATION_FLAGS`".
+windows = { version = "0.62", features = ["Win32_Security", "Win32_Security_Authorization", "Win32_Foundation", "Win32_System_Threading", "Win32_System_JobObjects", "Win32_System_Console", "Win32_System_Pipes"] }
+wiremock = "0.6"
+wl-clipboard-rs = "0.9"
+ainxt-acp-lib = { path = "crates/codegen/ainxt-acp-lib" }
+ainxt-agent-lifecycle = { path = "crates/codegen/ainxt-agent-lifecycle" }
+ainxt-circuit-breaker = { path = "crates/common/ainxt-circuit-breaker" }
+ainxt-computer-hub-core = { path = "crates/common/ainxt-computer-hub-core" }
+ainxt-computer-hub-sdk = { path = "crates/common/ainxt-computer-hub-sdk" }
+ainxt-gix-status = { path = "crates/codegen/ainxt-gix-status" }
+ainxt-agent = { path = "crates/codegen/ainxt-agent" }
+ainxt-announcements = { path = "crates/codegen/ainxt-announcements" }
+ainxt-auth = { path = "crates/codegen/ainxt-auth" }
+ainxt-config = { path = "crates/codegen/ainxt-config" }
+ainxt-config-types = { path = "crates/codegen/ainxt-config-types" }
+ainxt-env = { path = "crates/codegen/ainxt-env" }
+ainxt-http = { path = "crates/codegen/ainxt-http" }
+ainxt-markdown = { path = "crates/codegen/ainxt-markdown" }
+ainxt-markdown-core = { path = "crates/codegen/ainxt-markdown-core" }
+ainxt-mcp = { path = "crates/codegen/ainxt-mcp" }
+ainxt-memory = { path = "crates/codegen/ainxt-memory" }
+ainxt-mermaid = { path = "crates/codegen/ainxt-mermaid" }
+ainxt-sampler = { path = "crates/codegen/ainxt-sampler" }
+ainxt-secrets = { path = "crates/codegen/ainxt-secrets" }
+ainxt-shared = { path = "crates/codegen/ainxt-shared" }
+ainxt-shell = { path = "crates/codegen/ainxt-shell" }
+ainxt-shell-base = { path = "crates/codegen/ainxt-shell-base" }
+ainxt-shell-session-support = { path = "crates/codegen/ainxt-shell-session-support" }
+ainxt-telemetry = { path = "crates/codegen/ainxt-telemetry" }
+ainxt-test-support = { path = "crates/codegen/ainxt-test-support" }
+ainxt-tools = { path = "crates/codegen/ainxt-tools" }
+ainxt-tools-api = { path = "crates/codegen/ainxt-tools-api" }
+ainxt-version = { path = "crates/codegen/ainxt-version" }
+ainxt-workspace = { path = "crates/codegen/ainxt-workspace" }
+ainxt-workspace-types = { path = "crates/codegen/ainxt-workspace-types" }
+ainxt-hooks-plugins-types = { path = "crates/codegen/ainxt-hooks-plugins-types" }
+ainxt-interjection-core = { path = "crates/common/ainxt-interjection-core" }
+ainxt-mixpanel = { path = "crates/codegen/ainxt-mixpanel" }
+ainxt-prompt-queue = { path = "crates/codegen/ainxt-prompt-queue" }
+ainxt-proto-build = { path = "crates/build/ainxt-proto-build" }
+ainxt-ratatui-inline = { path = "crates/codegen/ainxt-ratatui-inline" }
+ainxt-ratatui-textarea = { path = "crates/codegen/ainxt-ratatui-textarea" }
+ainxt-sqlite-journal = { path = "crates/codegen/ainxt-sqlite-journal" }
+ainxt-system-power = { path = "crates/codegen/ainxt-system-power" }
+ainxt-test-utils = { path = "crates/common/ainxt-test-utils" }
+ainxt-token-estimation = { path = "crates/codegen/ainxt-token-estimation" }
+ainxt-tool-protocol = { path = "crates/common/ainxt-tool-protocol" }
+ainxt-tool-runtime = { path = "crates/common/ainxt-tool-runtime" }
+ainxt-tool-types = { path = "crates/common/ainxt-tool-types" }
+ainxt-tracing = { path = "crates/common/ainxt-tracing" }
+ainxt-policy-types = { path = "crates/common/ainxt-policy-types" }
+ainxt-policy = { path = "crates/common/ainxt-policy" }
+ainxt-redteam = { path = "crates/common/ainxt-redteam" }
+ainxt-audit = { path = "crates/common/ainxt-audit" }
+ainxt-provenance = { path = "crates/common/ainxt-provenance" }
+ainxt-shell-ast = { path = "crates/common/ainxt-shell-ast" }
+ainxt-intent = { path = "crates/common/ainxt-intent" }
+ainxt-session-risk = { path = "crates/common/ainxt-session-risk" }
+ainxt-pep = { path = "crates/common/ainxt-pep" }
+ainxt-policy-fetch = { path = "crates/codegen/ainxt-policy-fetch" }
+ainxt-tty-utils = { path = "crates/codegen/ainxt-tty-utils" }
+zbus = { version = "5" }
+zstd = "0.13"
+
+[profile.release]
+incremental = true
+panic = "abort"
+
+# Hardened release profile for shipping to end users (alpha + stable).
+# Use `cargo build --profile release-dist` for distribution builds.
+# Not used by default `--release` to avoid slowing down local dev builds (~2.2x).
+#
+# "Lite + fast" distribution build. For an interactive, network-bound TUI the
+# extra whole-program optimization (LTO + codegen-units=1) is imperceptible at
+# runtime but costs ~2x build time and ~10x binary size, so we trade it away:
+#   - lto = "off"          → skip the cross-crate link-time pass (much faster link).
+#   - codegen-units = 16   → parallelize each crate across cores (much faster build).
+#   - strip = "symbols"    → drop debug info + symbol tables (binaries ~50-120MB
+#                            instead of ~800MB); runtime behavior is unchanged.
+# Linker flags (RELRO, NX stack) are set per-target in .cargo/config.toml.
+[profile.release-dist]
+inherits = "release"
+lto = "off"
+codegen-units = 16
+strip = "symbols"
+debug = 0
+split-debuginfo = "off"
+
+# Production profile for latency-sensitive x-product services (VF, home-mixer).
+# Thin LTO gives ~90% of full LTO benefit at significantly faster link time.
+# Keeps symbols + line tables for prod debuggability (perf, flamegraph, stack traces).
+[profile.x-prod]
+inherits = "release"
+lto = "thin"
+strip = false
+codegen-units = 1
+debug = "line-tables-only"
+panic = "unwind"
+
+# Desktop release profile. Functionally identical to release-dist — kept as a
+# named alias so the desktop workflow can reference it without coupling to the
+# CLI pipeline's profile name. Alpha and stable share a single release-dist
+# profile so that stable promotion can pointer-swap the alpha binary without
+# rebuilding.
+[profile.release-dist-jemalloc]
+inherits = "release-dist"
+# All settings now match the parent — this is an intentional alias.
+
+
+[profile.dev]
+panic = "abort"
+split-debuginfo = "unpacked"
+codegen-units = 128
+debug = "line-tables-only"
+opt-level = 0
+lto = false
+incremental = true
+
+[profile.bench]
+debug = true
+
+[workspace.lints.clippy]
+# prost 0.14 renders proto doc-comment bullet lists in a way that trips this
+# lint on generated code. Kept in sync with bazel/lint/linters.bzl.
+doc_lazy_continuation = "allow"
+doc_overindented_list_items = "allow"
+needless_lifetimes = "allow"
+single_range_in_vec_init = "allow"
+too_many_arguments = "allow"
+
+# Allow uninlined_format_args lint to prevent main from breaking after merges
+# When older branches (created before this lint was added to CI) get merged,
+# they pass their own CI because their CI config doesn't include this lint check.
+# However, once merged to main, the code violates main's lint rules, causing:
+# 1. Main's CI to fail
+# 2. All new branches based off main to fail CI
+# 3. Developers having to fix lint violations from other people's merged code
+# Without a merge-queue that runs main's CI checks on the PR branch,
+# these violations slip through and break the build for everyone.
+# TODO: -> "deny" once/if merge queue enabled
+uninlined_format_args = "allow"
+
+# The `fastrace::trace(properties = { … })` proc-macro expands `"{param}"`
+# into `format!("{}", param)`, which clippy flags as useless_format.
+# Suppressed until the upstream crate fixes its codegen (fixed in 0.7.16+).
+useless_format = "allow"
+
+[patch.crates-io]
+nucleo = { path = "third_party/nucleo" }
+nucleo-matcher = { path = "third_party/nucleo/matcher" }

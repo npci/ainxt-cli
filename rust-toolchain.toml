@@ -1,0 +1,25 @@
+[toolchain]
+# We use the latest stable, but bump it manually.
+# To avoid unnecessary churn and simplify regression detection
+# - bump one point version at a time
+# - wait at least a couple of weeks after the release before bumping
+# After bumping the version, run
+# ```
+# cargo check --all-targets --workspace
+# cargo clippy --all-targets --workspace
+# ```
+#
+# 1.92.0 -> 1.96.0: with no `Cargo.lock` committed, a fresh clone resolved the
+# dependency graph to the newest semver-compatible versions, and 26 of those
+# (`aws-*`, `kstring`) declare `rust-version` up to 1.96.0. `cargo build` therefore
+# failed on this pin with "rustc 1.92.0 is not supported by the following packages"
+# before compiling a single line. 1.96.0 is the minimum that satisfies the locked
+# graph. `Cargo.lock` is now committed, so the graph no longer drifts under the pin.
+channel = "1.96.0"
+components = ["rustfmt", "clippy"]
+profile = "default" # this will override global preferred profile if such is set
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+] # host target will be added automatically
+# force CI

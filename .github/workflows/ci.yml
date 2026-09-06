@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  license-and-advisories:
+    name: cargo-deny (licenses, advisories, bans, sources)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          command: check
+
+  build-and-test:
+    name: build + test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      # rust-toolchain.toml pins the channel; rustup (preinstalled on
+      # GitHub-hosted runners) picks it up automatically on first `cargo`
+      # invocation, so no separate toolchain-install action is used here.
+      - name: Show resolved toolchain
+        run: rustup show
+
+      # dotslash makes `bin/protoc` resolve to the hash-pinned protoc release
+      # the repository already specifies, matching the local dev/build path
+      # exactly instead of substituting a distro-packaged protoc.
+      - name: Install dotslash
+        run: cargo install dotslash --locked
+
+      - name: cargo check --workspace
+        run: cargo check --workspace --all-targets
+
+      - name: cargo test --workspace
+        run: cargo test --workspace

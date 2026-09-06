@@ -1,0 +1,10 @@
+ainxt-ratatui-textarea was originally developed by xAI for the Grok TUI and is
+now maintained by National Payments Corporation of India as part of the AiNxt CLI project.
+
+Copyright 2023-2026 xAI (original authorship)
+Portions Copyright 2026 National Payments Corporation of India (modifications and ongoing maintenance)
+Licensed under the Apache License, Version 2.0 (see the repository root LICENSE).
+
+This crate is not a wholesale redistribution of third-party source. Dependencies
+such as ratatui are declared in Cargo.toml; their licenses appear in the
+repository root THIRD-PARTY-NOTICES file.

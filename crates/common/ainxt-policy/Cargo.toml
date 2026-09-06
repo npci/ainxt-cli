@@ -1,0 +1,32 @@
+[package]
+publish.workspace = true
+license = "Apache-2.0"
+name = "ainxt-policy"
+version = "0.1.0"
+edition.workspace = true
+description = "Policy resolution, bundle verification, and the decision engine"
+
+[features]
+# Exposes `global::install_scoped` for downstream crates' tests to set a
+# process policy engine without leaking global state.
+test-support = []
+
+[dependencies]
+ainxt-policy-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+ring = { workspace = true }
+blake3 = { workspace = true }
+base64 = { workspace = true }
+dunce = { workspace = true }
+arc-swap = { workspace = true }
+url = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

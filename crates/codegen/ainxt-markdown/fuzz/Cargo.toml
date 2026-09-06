@@ -1,0 +1,29 @@
+[package]
+name = "ainxt-markdown-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+# Declared explicitly rather than inherited: `[workspace] members = ["."]` below
+# makes this its own workspace root, so `license.workspace = true` would resolve
+# against this file, not the repository root.
+license = "Apache-2.0"
+
+[workspace]
+members = ["."]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.ainxt-markdown]
+path = ".."
+
+# All render modes: pretty/non-pretty × syntect/no-syntect × full/streaming
+[[bin]]
+name = "render_all"
+path = "fuzz_targets/render_all.rs"
+test = false
+doc = false
+bench = false
