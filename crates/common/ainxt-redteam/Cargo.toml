@@ -1,0 +1,19 @@
+[package]
+publish.workspace = true
+license = "Apache-2.0"
+name = "ainxt-redteam"
+version = "0.1.0"
+edition.workspace = true
+description = "Red-team corpus: adversarial scenarios asserting the security invariants"
+
+[dependencies]
+ainxt-policy = { workspace = true }
+ainxt-policy-types = { workspace = true }
+ainxt-audit = { workspace = true }
+ainxt-provenance = { workspace = true }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tempfile = { workspace = true }

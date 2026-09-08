@@ -1,0 +1,209 @@
+# cargo-deny configuration
+# Run: cargo deny check
+# Install: cargo install cargo-deny
+# Docs: https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+# Targets to check. Omit to check all platform-specific deps.
+# targets = []
+
+# ---------------------------------------------------------------------------
+# License policy
+# ---------------------------------------------------------------------------
+[licenses]
+# Minimum confidence threshold for license detection (0.0–1.0).
+confidence-threshold = 0.8
+
+# Licenses that are unconditionally allowed.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    # Declared by finl_unicode and wezterm-bidi, both of which are in
+    # Cargo.lock but reachable only via dev-dependencies (termwiz). cargo-deny
+    # does not encounter it in the checked graph, hence its
+    # `license-not-encountered` warning; the allowance is kept because those
+    # two crates do declare it. Do not remove without re-checking them.
+    "Unicode-DFS-2016",
+    "Zlib",
+    "0BSD",
+    "BSL-1.0",
+    "CC0-1.0",
+]
+
+# Licenses that require explicit exceptions (file-level copyleft, or a licence
+# this policy has not yet classified).
+#
+# The MPL-2.0 exceptions below are technically acceptable:
+#
+#   MPL-2.0 (7 entries below) — Mozilla Public License 2.0. File-level copyleft
+#   only: modifications to MPL-2.0 files must be released under MPL-2.0, but
+#   Apache-2.0/MIT code in this repository is unaffected. These 7 are exactly
+#   the MPL-2.0 crates reachable from the shipped `ainxt` binary on normal
+#   (non-dev) dependency edges. Risk: LOW. Action: legal to acknowledge in
+#   writing.
+#
+#   Note: `colored` (MPL-2.0), `colored_json` (EPL-2.0) and `terminfo` (WTFPL)
+#   also appear in Cargo.lock but are reachable ONLY through dev-dependencies
+#   (`mockito`, `termwiz`). They are not linked into any distributed artifact,
+#   so they are deliberately NOT given exceptions here.
+#
+# Licence exceptions scoped per package — a new dependency under one of these
+# licences must be explicitly added here rather than being silently admitted.
+#
+exceptions = [
+    # --- MPL-2.0 -------------------------------------------------------------
+    { allow = ["MPL-2.0"], name = "cssparser" },
+    { allow = ["MPL-2.0"], name = "cssparser-macros" },
+    { allow = ["MPL-2.0"], name = "selectors" },
+    { allow = ["MPL-2.0"], name = "dtoa-short" },
+    { allow = ["MPL-2.0"], name = "option-ext" },
+    { allow = ["MPL-2.0"], name = "nucleo" },
+    { allow = ["MPL-2.0"], name = "nucleo-matcher" },
+
+    # --- Unicode-3.0 --------------------------------------------------------
+    { allow = ["Unicode-3.0"], name = "icu_collections" },
+    { allow = ["Unicode-3.0"], name = "icu_locale_core" },
+    { allow = ["Unicode-3.0"], name = "icu_normalizer" },
+    { allow = ["Unicode-3.0"], name = "icu_normalizer_data" },
+    { allow = ["Unicode-3.0"], name = "icu_properties" },
+    { allow = ["Unicode-3.0"], name = "icu_properties_data" },
+    { allow = ["Unicode-3.0"], name = "icu_provider" },
+    { allow = ["Unicode-3.0"], name = "litemap" },
+    { allow = ["Unicode-3.0"], name = "potential_utf" },
+    { allow = ["Unicode-3.0"], name = "tinystr" },
+    { allow = ["Unicode-3.0"], name = "writeable" },
+    { allow = ["Unicode-3.0"], name = "yoke" },
+    { allow = ["Unicode-3.0"], name = "yoke-derive" },
+    { allow = ["Unicode-3.0"], name = "zerofrom" },
+    { allow = ["Unicode-3.0"], name = "zerofrom-derive" },
+    { allow = ["Unicode-3.0"], name = "zerotrie" },
+    { allow = ["Unicode-3.0"], name = "zerovec" },
+    { allow = ["Unicode-3.0"], name = "zerovec-derive" },
+    { allow = ["Unicode-3.0"], name = "unicode-ident" },
+
+    # --- CDLA-Permissive-2.0 ------------------------------------------------
+    { allow = ["CDLA-Permissive-2.0"], name = "webpki-roots" },
+    { allow = ["CDLA-Permissive-2.0"], name = "webpki-root-certs" },
+
+    # --- MIT-0 --------------------------------------------------------------
+    { allow = ["MIT-0"], name = "borrow-or-share" },
+]
+
+# ---------------------------------------------------------------------------
+# libgit2 / libgit2-sys — GPL-2.0 WITH linking exception
+# ---------------------------------------------------------------------------
+# Note: the previous version of this block stated that libgit2-sys "declares
+# GPL-2.0-only in its Cargo.toml". That was incorrect.
+#
+# The facts, verified against the current tree:
+#
+#   * The Rust wrapper crate libgit2-sys 0.18.8+1.9.7 declares
+#     `license = "MIT OR Apache-2.0"`. Both are in `allow` above, so cargo-deny
+#     needs no clarification for it. The former `[[licenses.clarify]]` block
+#     here was therefore a no-op, and its `license-files` hash pinned a
+#     `LICENSE` path the crate does not ship (it ships LICENSE-APACHE and
+#     LICENSE-MIT), which made cargo-deny emit `missing-clarification-file`.
+#     The promise in the old comment — that the hash would make the
+#     clarification "fail loudly if upstream changes its terms" — was inert.
+#     The block has been removed rather than repaired: there is nothing to
+#     clarify.
+#
+#   * The GPL question is real, but it attaches to the vendored libgit2 **C**
+#     library, not to the wrapper's declared licence. That C source is bundled
+#     inside the crate and is GPL-2.0 with an explicit linking exception (see
+#     its COPYING, "LINKING EXCEPTION"). cargo-deny reads only the wrapper's
+#     Cargo.toml, so it never sees this at all — the gate passing is NOT
+#     evidence that the GPL question has been answered.
+#
+#   * That C library IS statically linked into the shipped binary, via
+#     `features = ["vendored-libgit2"]` in 8 crates: ainxt-agent,
+#     ainxt-fsnotify, ainxt-memory, ainxt-pager, ainxt-plugin-marketplace,
+#     ainxt-shell, ainxt-telemetry, ainxt-workspace.
+#
+#   * Attribution for it is recorded in THIRD-PARTY-NOTICES (the libgit2-sys
+#     entry names the bundled C library and its licence, and Part II reproduces
+#     the COPYING text verbatim).
+#
+# The linking exception covers the way this project statically links libgit2.
+# Attribution is recorded in THIRD-PARTY-NOTICES.
+#
+# Note: the previous version of this comment
+# rather than deleted, so the record of what was approved, and on what basis,
+# survives.
+
+# ---------------------------------------------------------------------------
+# Security advisories
+# ---------------------------------------------------------------------------
+[advisories]
+# Path to a local advisory database clone (optional; fetched from GitHub if absent).
+# db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+
+# cargo-deny 0.16+: vulnerability/notice/unmaintained/yanked moved under [advisories]
+# as a single "ignore" list. Use `cargo deny check advisories` to surface issues.
+# The keys below are the current schema for cargo-deny 0.20.x:
+version = 2
+
+# ---------------------------------------------------------------------------
+# SBOM finding note — bit-vec:0.8.0 "High, CVSS 7.5" (SBOM_Compliance_Report,
+# ainxt-cli §5): investigated 2026-08-28 and determined to be a FALSE POSITIVE.
+#
+# There is no RustSec advisory, GitHub Security Advisory, NVD/CVE entry, or
+# OSV.dev record for `bit-vec` at any version, including 0.8.0 (confirmed via
+# https://api.osv.dev/v1/query for package bit-vec on crates.io — empty
+# result — plus RustSec advisory-db, GitHub Advisory DB, and Snyk vulnerability
+# DB, none of which list a `bit-vec` entry). The scanner appears to have
+# mis-attributed a CVE from an unrelated package (possibly matched on name
+# similarity, e.g. `bitvec` or a C/C++ `BitVector` library) to this crate.
+#
+# `bit-vec` is pulled in transitively via `bit-set` <- `fancy-regex` <-
+# `syntect`/`jsonschema` (see `cargo tree -i bit-vec@<version>`); it is not a
+# direct dependency and cannot be swapped out without an upstream change in
+# those crates. No action is needed unless a legitimate advisory is published.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Advisory ignores — known advisories with no available fix or accepted risk.
+# ---------------------------------------------------------------------------
+ignore = [
+    { id = "RUSTSEC-2023-0071", reason = "rsa: HMAC-sign / RSA-public-verify only; no upstream fix exists" },
+    { id = "RUSTSEC-2025-0052", reason = "async-std discontinued, no known vulnerability, no safe upgrade available" },
+    { id = "RUSTSEC-2025-0012", reason = "backoff unmaintained, no known vulnerability, no safe upgrade available" },
+    { id = "RUSTSEC-2025-0141", reason = "bincode 1.3.3 unmaintained, no known vulnerability, no safe upgrade available" },
+    { id = "RUSTSEC-2025-0057", reason = "fxhash unmaintained, no known vulnerability, no safe upgrade available" },
+    { id = "RUSTSEC-2024-0384", reason = "instant unmaintained, no known vulnerability, no safe upgrade available" },
+    { id = "RUSTSEC-2024-0436", reason = "paste unmaintained (archived by author), no known vulnerability, no safe upgrade available" },
+    { id = "RUSTSEC-2026-0206", reason = "rustybuzz unmaintained (author recommends harfrust), no known vulnerability, no safe upgrade available" },
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser unmaintained (author recommends skrifa), no known vulnerability, no safe upgrade available" },
+]
+
+# ---------------------------------------------------------------------------
+# Bans (duplicate versions, wildcard deps, etc.)
+# ---------------------------------------------------------------------------
+[bans]
+# Warn on multiple versions of the same crate (common in large workspaces).
+multiple-versions = "warn"
+
+# Deny wildcard dependency specifications.
+wildcards = "deny"
+# ...but the ~50 internal `ainxt-*` workspace crates that depend on each
+# other via `path = "..."` with no version requirement are wildcards too
+# (Cargo treats an omitted version as `*`), and cargo-deny has a purpose-built
+# exception for exactly this: a wildcard that is also a path dependency is,
+# by definition, pinned to whatever is checked out in this workspace, not to
+# "any version ever published." Every wildcard reported is one of these internal
+# path dependencies, not a real external unpinned dependency.
+allow-wildcard-paths = true
+
+# ---------------------------------------------------------------------------
+# Sources
+# ---------------------------------------------------------------------------
+[sources]
+# Only allow crates from crates.io and the local workspace.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

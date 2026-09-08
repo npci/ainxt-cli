@@ -1,0 +1,31 @@
+[package]
+publish.workspace = true
+license = "Apache-2.0"
+name = "ainxt-computer-hub-mcp-adapter"
+version = "0.1.0"
+edition.workspace = true
+description = "Bridge between MCP servers and the ainxt Computer Hub, registering MCP-discovered tools as native hub tools."
+
+[features]
+metrics = ["dep:prometheus"]
+
+[dependencies]
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["sync"] }
+tracing = { workspace = true }
+prometheus = { workspace = true, optional = true }
+
+ainxt-tool-protocol = { workspace = true }
+ainxt-tool-runtime = { workspace = true }
+ainxt-tool-types = { workspace = true }
+ainxt-computer-hub-sdk = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+futures = { workspace = true }
+
+[lints]
+workspace = true

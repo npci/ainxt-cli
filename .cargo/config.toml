@@ -1,0 +1,4 @@
+[net]
+# Use system git binary instead of libgit2 so git credential helpers
+# and proxy settings are respected for git dependencies.
+git-fetch-with-cli = true

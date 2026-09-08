@@ -1,0 +1,24 @@
+[package]
+publish.workspace = true
+license = "Apache-2.0"
+name = "ainxt-config-types"
+version = "0.1.0"
+edition.workspace = true
+description = "Leaf configuration value types for the ainxt CLI, extracted from ainxt-shell for dependency inversion."
+
+[dependencies]
+agent-client-protocol = { workspace = true }
+indexmap = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+strum = { workspace = true }
+tracing = { workspace = true }
+ainxt-announcements = { workspace = true }
+ainxt-config = { workspace = true }
+ainxt-mcp = { workspace = true }
+
+[features]
+default-bazel = []
+
+[lints]
+workspace = true

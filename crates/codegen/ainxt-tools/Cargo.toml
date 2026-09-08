@@ -1,0 +1,124 @@
+[package]
+publish.workspace = true
+license = "Apache-2.0"
+edition.workspace = true
+name = "ainxt-tools"
+version = "0.1.220-alpha.4"
+description = "ainxt tools library"
+
+[dependencies]
+anyhow = { workspace = true }
+zeroize = "1"
+arc-swap = { workspace = true }
+dirs = { workspace = true }
+derive_more = { workspace = true, features = ["from", "try_into"] }
+dunce = { workspace = true }
+fs2 = { workspace = true }
+educe = { workspace = true, features = ["Debug"] }
+async-openai = { workspace = true }
+ainxt-tty-utils = { workspace = true }
+ainxt-pep = { workspace = true }
+ainxt-policy = { workspace = true }
+ainxt-policy-types = { workspace = true }
+ainxt-config = { path = "../ainxt-config" }
+ainxt-tools-api = { path = "../ainxt-tools-api" }
+ainxt-workspace-types = { path = "../ainxt-workspace-types" }
+ainxt-version = { workspace = true }
+ainxt-interjection-core = { workspace = true }
+ainxt-token-estimation = { workspace = true }
+async-lsp = { workspace = true }
+async-stream = { workspace = true }
+async-trait = { workspace = true }
+base64 = { workspace = true }
+crc32fast = { workspace = true }
+ignore = { workspace = true }
+infer = { workspace = true }
+globset = { workspace = true }
+image = { workspace = true, features = ["png", "jpeg", "gif", "webp", "bmp", "tiff", "ico"] }
+pdf_oxide = { workspace = true }
+# PPTX text extraction (implementations/read_file/pptx.rs). Deliberately NOT
+# `workspace = true`: the workspace `zip` pin has default features on, which
+# drag aes/bzip2/lzma/zstd into the shipped pager binary. PPTX entries are
+# only ever stored or deflated.
+zip = { version = "3", default-features = false, features = ["deflate-flate2"] }
+quick-xml = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
+minijinja = { version = "2", features = ["custom_syntax"] }
+parking_lot = { workspace = true }
+htmd = { workspace = true }
+scraper = { workspace = true }
+reqwest = { workspace = true, features = ["rustls-tls", "json", "gzip", "brotli", "deflate"] }
+pulldown-cmark = { workspace = true }
+regex = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_path_to_error = { workspace = true }
+ainxt-tool-runtime = { workspace = true }
+ainxt-tool-types = { workspace = true }
+ainxt-tool-protocol = { workspace = true }
+ainxt-computer-hub-core = { workspace = true }
+ainxt-computer-hub-sdk = { workspace = true }
+
+futures = { workspace = true }
+similar = { workspace = true }
+strum = { version = "0.26", features = ["derive"] }
+strip-ansi-escapes = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = [
+    "io-std",
+    "process",
+    "rt",
+    "macros",
+    "rt-multi-thread",
+    "net",
+    "sync",
+] }
+tokio-util = { workspace = true, features = ["compat"] }
+tonic = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
+uuid = { workspace = true, features = ["v7"] }
+ainxt-env = { workspace = true }
+serde_yaml = { workspace = true }
+shellexpand = "3.1"
+tempfile = { workspace = true }
+which = { workspace = true }
+
+chrono = { workspace = true }
+futures-util = { workspace = true }
+ainxt-sandbox = { path = "../ainxt-sandbox", default-features = false }
+ainxt-file-utils = { path = "../ainxt-file-utils" }
+
+[target.'cfg(unix)'.dependencies]
+command-fds = { version = "0.3", features = ["tokio"] }
+nix = { workspace = true, features = ["signal", "process", "fs"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = { workspace = true }
+
+# windows: util::spawn uses Win32 Job Objects (CreateJobObjectW,
+# AssignProcessToJobObject, TerminateJobObject) and process creation flags
+# (CREATE_NO_WINDOW, DETACHED_PROCESS, CREATE_NEW_PROCESS_GROUP).
+[target.'cfg(windows)'.dependencies]
+windows = { workspace = true }
+
+[dev-dependencies]
+dirs = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+tracing-subscriber = { workspace = true, features = ["fmt"] }
+wiremock = { workspace = true }
+ainxt-test-utils = { workspace = true }
+
+[build-dependencies]
+reqwest = { workspace = true, features = ["blocking", "rustls-tls"] }
+flate2 = { workspace = true }
+tar = { workspace = true }
+
+[lints]
+workspace = true
+
+[features]
+default-bazel = ["serde"]
+default = ["serde"]
+serde = []

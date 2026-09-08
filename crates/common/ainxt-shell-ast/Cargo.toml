@@ -1,0 +1,15 @@
+[package]
+license = "Apache-2.0"
+name = "ainxt-shell-ast"
+version = "0.1.0"
+edition.workspace = true
+description = "Shell command AST + file-access derivation (tree-sitter). No policy types, no decisions."
+
+[dependencies]
+tree-sitter = "0.25.10"
+tree-sitter-bash = "0.25"
+serde = { workspace = true }
+dunce = { workspace = true }
+
+[lints]
+workspace = true

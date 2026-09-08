@@ -1,0 +1,117 @@
+Fork Attribution — upstream work
+--------------------------------
+
+AiNxt CLI is a fork of **Grok Build** (`grok`), the terminal-based AI coding
+agent developed and published by SpaceXAI under the Apache License, Version 2.0.
+
+    Copyright 2023-2026 SpaceXAI
+
+    Upstream project:       Grok Build
+    Upstream repository:    https://github.com/xai-org/grok-build
+    Upstream documentation: https://docs.x.ai/build/overview
+    Upstream license:       Apache License, Version 2.0
+
+**The substantial majority of this repository is upstream work.** The agent
+harness, terminal user interface, tool runtime, session handling, sampler and
+ACP server all originate in Grok Build and remain the copyright of SpaceXAI and
+its contributors. NPCI's copyright above applies to NPCI's own modifications and
+additions, not to the underlying work.
+
+The upstream Apache-2.0 license text is reproduced verbatim in LICENSE, and the
+upstream copyright notice is retained there alongside NPCI's.
+
+Record of modifications (Apache License 2.0, section 4(b))
+----------------------------------------------------------
+
+The following changes were made by NPCI relative to the upstream Grok Build
+project. Each is a factual description of the state of this repository.
+
+  1. Renaming and rebranding. Crates, binaries, environment variables and
+     user-facing strings were renamed from the upstream `grok` / `xai-*` /
+     `XAI_*` / `GROK_*` naming to `ainxt` / `ainxt-*` / `AINXT_*`. This
+     repository contains 81 `ainxt-*` crates and reads approximately 430
+     distinct `AINXT_*` environment variables. The binary is `ainxt`; user
+     state is stored under `~/.ainxt/`.
+
+  2. Gateway authentication. Bearer-token sign-in against a self-hosted gateway
+     was added (`ainxt login`, `~/.ainxt/credentials.json`, `AINXT_TOKEN`,
+     `AINXT_DEPLOYMENT_KEY`), including email/password and device-code flows
+     against `/ainxt/v1/api/auth/*`.
+
+  3. Model catalogue. Bundled and default model definitions were removed. The
+     catalogue is obtained from a gateway the operator configures, or from
+     `[model.*]` entries in `~/.ainxt/config.toml`. An unconfigured build starts
+     with no models and reports that condition rather than selecting one.
+
+  4. Compiled-in endpoints removed. Every compiled endpoint and UI URL default
+     was emptied: 5 backend endpoint constants and 7 `URL_*` constants (12
+     total) now ship as empty strings, and the asset host uses the reserved
+     `.invalid` TLD.
+     There is no default gateway, OAuth issuer, update origin or asset server in
+     this build. Configuration is supplied at runtime through `AINXT_*`
+     environment variables. The reasoning is recorded in
+     `crates/codegen/ainxt-env/src/lib.rs`.
+
+  5. Removals. The runtime TLS-verification bypass present upstream was removed;
+     all three former call sites record its removal. Three upstream user-guide
+     chapters were not carried over (see "Documentation" below).
+
+  6. Additions. `setup.sh`, `env.example` and `INSTALL.md` were added. The
+     platform installer scripts were changed to resolve releases from this
+     repository's own GitHub Releases, with no third-party fallback download
+     origin.
+
+This list is maintained in this file. It is a summary and not a substitute for
+the commit history; where the two differ, the history governs.
+
+Documentation
+-------------
+
+The user guide under `crates/codegen/ainxt-pager/docs/user-guide/` is derived
+from the upstream guide at `crates/codegen/xai-grok-pager/docs/user-guide/` in
+the Grok Build project. Chapters 01-24 correspond to upstream chapters of the
+same number and filename, adapted for the renaming and behavioural changes
+recorded above. Three upstream chapters are not present in this fork:
+`25-status-line.md`, `26-config-reference.md` and `27-grok-clone.md`.
+
+Upstream's own documentation at https://docs.x.ai/build/overview remains the
+reference for behaviour this fork did not change.
+
+Other third-party code
+----------------------
+
+This repository also incorporates code from projects other than Grok Build:
+
+  * Tool implementations ported from openai/codex (Apache-2.0). See
+    `crates/codegen/ainxt-tools/THIRD_PARTY_NOTICES.md`.
+  * Vendored upstream crates under `third_party/` — each retains its own
+    license file, and `third_party/NOTICE` records the set and its licenses.
+    Note that `third_party/nucleo` is licensed under the Mozilla Public License
+    2.0, not Apache-2.0.
+  * Dependency licenses and attributions are recorded in
+    `THIRD-PARTY-NOTICES` at the repository root.
+
+Third-party code retains its original licenses. Apache-2.0 applies to
+first-party AiNxt code and to NPCI's modifications; it does not relicense any
+third-party component.
+
+Trademarks
+----------
+
+"Grok", "Grok Build", "xAI" and "SpaceXAI" are trademarks of their respective
+owners. The Apache License grants no trademark rights (section 6), and those
+marks are not used to name, brand or promote this fork. AiNxt CLI is not
+affiliated with, endorsed by, or supported by xAI or SpaceXAI.
+
+"AiNxt" and "NPCI" are marks of National Payments Corporation of India.
+
+Upstream revision
+-----------------
+
+The upstream project records the monorepo commit it was synced from in a root
+`SOURCE_REV` file. This fork does not currently record its fork point, so the
+precise upstream revision these sources correspond to is not stated here and
+cannot be inferred from this repository. Whoever performed the fork should add a
+`SOURCE_REV` file at this repository root containing that commit SHA, so that
+this fork can be diffed against upstream and so that the provenance of
+inherited code is verifiable. This value has deliberately not been guessed.

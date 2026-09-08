@@ -1,0 +1,26 @@
+[package]
+publish.workspace = true
+license = "Apache-2.0"
+name = "ainxt-computer-hub-core"
+version = "0.1.0"
+edition.workspace = true
+description = "Transport, ToolRegistry, and resolver abstractions for the ainxt Computer Hub"
+
+[dependencies]
+async-trait = { workspace = true }
+chrono = { workspace = true }
+futures = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+ainxt-tool-protocol = { workspace = true }
+ainxt-tool-runtime = { workspace = true }
+ainxt-tool-types = { workspace = true }
+
+[dev-dependencies]
+dashmap = { workspace = true }
+schemars = { workspace = true }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "test-util", "sync"] }
+serde = { workspace = true, features = ["derive"] }
+
+[lints]
+workspace = true

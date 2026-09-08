@@ -1,0 +1,18 @@
+[package]
+license = "Apache-2.0"
+name = "ainxt-policy-types"
+version = "0.1.0"
+edition.workspace = true
+description = "Pure schema and merge algebra for ainxt security policy (AINXT-SEC-001)"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+indexmap = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+
+[lints]
+workspace = true

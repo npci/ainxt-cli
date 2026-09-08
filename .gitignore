@@ -1,0 +1,45 @@
+# Build outputs
+dist/*
+target/*
+
+# Node / JS tooling (not part of the Rust build)
+node_modules/
+*.node
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ainxt agent tooling
+.ainxt-local/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets / local overrides
+.env
+.env.local
+*.local.toml
+env.npci
+env.*.local
+
+# Git internals
+.git
+
+# Rust build artifacts (also covered above)
+**/*.rs.bk
+debug/
+
+# Local release artefacts (scripts/build-release.sh output)
+dist/
+dist.zip
+# Compliance auditor scratch state (regenerated each run; reports are published, run state is not)
+compliance/.run/
