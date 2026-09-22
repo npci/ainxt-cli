@@ -68,6 +68,11 @@ impl ToolKind {
             ToolKind::UseTool => "Use Tool",
             ToolKind::Monitor => "Monitor",
             ToolKind::GoalUpdate => "Update Goal",
+            ToolKind::ChromeNavigate => "Browse",
+            ToolKind::ChromeReadPage => "Read Page",
+            ToolKind::ChromeClick => "Click",
+            ToolKind::ChromeType => "Type",
+            ToolKind::ChromeScreenshot => "Screenshot",
             ToolKind::Other => "Tool",
         }
     }
@@ -88,7 +93,9 @@ impl ToolKind {
             | ToolKind::WebFetch
             | ToolKind::EnterPlan
             | ToolKind::ExitPlan
-            | ToolKind::AskUser => true,
+            | ToolKind::AskUser
+            | ToolKind::ChromeReadPage
+            | ToolKind::ChromeScreenshot => true,
             ToolKind::Edit
             | ToolKind::Delete
             | ToolKind::Write
@@ -109,6 +116,9 @@ impl ToolKind {
             | ToolKind::UseTool
             | ToolKind::Monitor
             | ToolKind::GoalUpdate
+            | ToolKind::ChromeNavigate
+            | ToolKind::ChromeClick
+            | ToolKind::ChromeType
             | ToolKind::Other => false,
         }
     }

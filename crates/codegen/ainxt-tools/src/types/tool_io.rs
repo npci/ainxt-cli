@@ -27,6 +27,10 @@ use crate::implementations::ainxt_build::search_replace::SearchReplaceInput;
 use crate::implementations::ainxt_build::todo::TodoWriteInput;
 use crate::implementations::ainxt_build::update_goal::UpdateGoalInput;
 use crate::implementations::ainxt_build::video_gen::{ImageToVideoInput, ReferenceToVideoInput};
+use crate::implementations::ainxt_build::chrome::{
+    ChromeClickInput, ChromeNavigateInput, ChromeReadPageInput, ChromeScreenshotInput,
+    ChromeTypeInput,
+};
 use crate::implementations::ainxt_build::web_fetch::WebFetchInput;
 use crate::implementations::ainxt_build::web_search::WebSearchInput;
 use crate::implementations::lsp::LspToolInput;
@@ -76,6 +80,11 @@ pub enum ToolInput {
     ImageToVideo(ImageToVideoInput),
     ReferenceToVideo(ReferenceToVideoInput),
     WebFetch(WebFetchInput),
+    ChromeNavigate(ChromeNavigateInput),
+    ChromeReadPage(ChromeReadPageInput),
+    ChromeClick(ChromeClickInput),
+    ChromeType(ChromeTypeInput),
+    ChromeScreenshot(ChromeScreenshotInput),
     Write(WriteInput),
     ApplyPatch(ApplyPatchInput),
     HashlineEdit(crate::implementations::ainxt_build_hashline::edit::types::HashlineEditInput),
