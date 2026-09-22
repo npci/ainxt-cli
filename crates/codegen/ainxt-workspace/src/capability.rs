@@ -103,6 +103,11 @@ pub(crate) const ALL_TOOL_KINDS: &[ToolKind] = &[
     ToolKind::UseTool,
     ToolKind::Monitor,
     ToolKind::GoalUpdate,
+    ToolKind::ChromeNavigate,
+    ToolKind::ChromeReadPage,
+    ToolKind::ChromeClick,
+    ToolKind::ChromeType,
+    ToolKind::ChromeScreenshot,
     ToolKind::Other,
 ];
 
@@ -156,6 +161,16 @@ pub(crate) fn kind_allowed(mode: CapabilityMode, kind: ToolKind) -> bool {
 
         // Integration dispatch.
         UseTool => matches!(mode, M::ReadWrite | M::Execute),
+
+        // Browser control. Reading a rendered page is a read; navigating
+        // drives a browser carrying the user's logged-in cookies, so a GET
+        // alone can act on their behalf — that belongs with the write modes.
+        ChromeReadPage => matches!(mode, M::ReadOnly | M::ReadWrite | M::Execute),
+        // Screenshot sits here, not with the reads: `save_path` writes a
+        // file, so a ReadOnly session must not be handed it.
+        ChromeNavigate | ChromeClick | ChromeType | ChromeScreenshot => {
+            matches!(mode, M::ReadWrite | M::Execute)
+        }
 
         // Catch-all -- only `All` mode keeps it (early-return above).
         Other => false,

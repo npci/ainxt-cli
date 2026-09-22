@@ -100,6 +100,11 @@ pub enum ToolKind {
     UseTool,
     Monitor,
     GoalUpdate,
+    ChromeNavigate,
+    ChromeReadPage,
+    ChromeClick,
+    ChromeType,
+    ChromeScreenshot,
     #[serde(other)]
     Other,
 }

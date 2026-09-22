@@ -9,6 +9,7 @@
 //! the standard toolset. It inserts shared resources (`Terminal`,
 //! `AvailableSkills`, `BashParams`) and registers every built-in tool.
 pub mod ask_user_question;
+pub mod chrome;
 pub mod bash;
 #[path = "deploy_app_stub.rs"]
 pub mod deploy_app;
@@ -62,6 +63,10 @@ pub use video_gen::{
     IMAGE_TO_VIDEO_TOOL_NAME, IMAGINE_VIDEO_COMMAND_NAME, ImageToVideoTool,
     REFERENCE_TO_VIDEO_TOOL_NAME, ReferenceToVideoTool, imagine_video_instruction,
     imagine_video_usage_message,
+};
+pub use chrome::{
+    ChromeClickTool, ChromeClient, ChromeNavigateTool, ChromeParams, ChromeReadPageTool,
+    ChromeScreenshotTool, ChromeTypeTool,
 };
 pub use web_fetch::{WebFetchClient, WebFetchConfig, WebFetchParams, WebFetchTool};
 pub use web_search::WebSearchTool;

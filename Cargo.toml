@@ -66,6 +66,7 @@ members = [
     "crates/codegen/ainxt-token-estimation",
     "crates/codegen/ainxt-tracing-macros",
     "crates/codegen/ainxt-tty-utils",
+    "crates/common/ainxt-chrome",
     "crates/common/ainxt-circuit-breaker",
     "crates/common/ainxt-computer-hub-core",
     "crates/common/ainxt-computer-hub-mcp-adapter",
@@ -300,6 +301,7 @@ wiremock = "0.6"
 wl-clipboard-rs = "0.9"
 ainxt-acp-lib = { path = "crates/codegen/ainxt-acp-lib" }
 ainxt-agent-lifecycle = { path = "crates/codegen/ainxt-agent-lifecycle" }
+ainxt-chrome = { path = "crates/common/ainxt-chrome" }
 ainxt-circuit-breaker = { path = "crates/common/ainxt-circuit-breaker" }
 ainxt-computer-hub-core = { path = "crates/common/ainxt-computer-hub-core" }
 ainxt-computer-hub-sdk = { path = "crates/common/ainxt-computer-hub-sdk" }

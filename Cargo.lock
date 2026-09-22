@@ -193,6 +193,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ainxt-chrome"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dirs 5.0.1",
+ "futures-util",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "tokio",
+ "tokio-tungstenite 0.27.0",
+ "tracing",
+]
+
+[[package]]
 name = "ainxt-circuit-breaker"
 version = "0.1.0"
 dependencies = [
@@ -1573,6 +1589,7 @@ dependencies = [
 name = "ainxt-tools"
 version = "0.1.220-alpha.4"
 dependencies = [
+ "ainxt-chrome",
  "ainxt-computer-hub-core",
  "ainxt-computer-hub-sdk",
  "ainxt-config",

@@ -631,6 +631,9 @@ pub enum ToolOutput {
     Todo(TodoWriteOutput),
     WebSearch(WebSearchOutput),
     WebFetch(WebFetchOutput),
+    ChromeNavigate(ChromeNavigateOutput),
+    ChromeReadPage(ChromeReadPageOutput),
+    ChromeInteract(ChromeInteractOutput),
     MCP(MCPOutput),
     TaskOutput(TaskOutputOutput),
     KillTask(KillTaskOutput),
@@ -727,6 +730,21 @@ impl ToolOutput {
                     )
                 }
             },
+            ToolOutput::ChromeNavigate(nav) => {
+                format!("Opened {} — \"{}\"", nav.url, nav.title)
+            }
+            ToolOutput::ChromeInteract(i) => {
+                format!(
+                    "{} on [ref={}] — now at {} (\"{}\")",
+                    i.action, i.element_ref, i.url, i.title
+                )
+            }
+            ToolOutput::ChromeReadPage(page) => {
+                format!(
+                    "{} — \"{}\"\n\n{}",
+                    page.url, page.title, page.tree
+                )
+            }
             ToolOutput::ListDir(list_dir_output) => match list_dir_output {
                 ListDirOutput::Content(content) => content.content.clone(),
                 ListDirOutput::NotFound(error_msg)
@@ -1269,6 +1287,9 @@ impl ainxt_tool_runtime::ToolOutput for EnterPlanModeOutput {}
 impl ainxt_tool_runtime::ToolOutput for ExitPlanModeOutput {}
 impl ainxt_tool_runtime::ToolOutput for AskUserQuestionOutput {}
 impl ainxt_tool_runtime::ToolOutput for MCPOutput {}
+impl ainxt_tool_runtime::ToolOutput for ChromeNavigateOutput {}
+impl ainxt_tool_runtime::ToolOutput for ChromeReadPageOutput {}
+impl ainxt_tool_runtime::ToolOutput for ChromeInteractOutput {}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2470,4 +2491,43 @@ mod tests {
             false,
         );
     }
+}
+
+/// Result of a Chrome navigation.
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ChromeNavigateOutput {
+    /// Final URL, after any redirects.
+    pub url: String,
+    /// Document title once loaded.
+    pub title: String,
+}
+
+/// Result of reading the current page.
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ChromeReadPageOutput {
+    /// URL of the page that was read.
+    pub url: String,
+    /// Document title.
+    pub title: String,
+    /// Accessibility outline: one line per node, `[ref=N]` handles for
+    /// addressing elements.
+    pub tree: String,
+    /// True when the outline hit the character ceiling.
+    pub truncated: bool,
+}
+
+/// Result of a click or type interaction.
+#[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ChromeInteractOutput {
+    /// What was done, for the transcript.
+    pub action: String,
+    /// The element handle that was acted on.
+    pub element_ref: i64,
+    /// URL after the interaction — a click may have navigated.
+    pub url: String,
+    /// Title after the interaction.
+    pub title: String,
 }
