@@ -18,9 +18,11 @@ So ainxt runs **its own Chrome** against its own profile at
 `~/.ainxt/chrome-profile`, seeded once from your real profile so your logins
 carry over. Your everyday browser keeps running, untouched.
 
-The seed copies `Cookies`, `Login Data`, `Web Data` and `Preferences`. It
-happens once, on first use. Sessions drift as cookies expire — delete
-`~/.ainxt/chrome-profile` to re-seed from a fresh state.
+The seed copies **cookies only**, once, on first use. Saved passwords and
+autofill data are deliberately left behind: staying logged in does not need
+them, and copying them would let the agent's browser autofill credentials and
+card numbers into forms it clicks. Sessions drift as cookies expire — delete
+`~/.ainxt/chrome-profile` to re-seed.
 
 ---
 
@@ -85,6 +87,39 @@ classified by the most privileged thing it can do.
 You do **not** need macOS screen-recording permission. The image comes from
 Chrome over the DevTools protocol, not from the OS screen capture APIs, so it
 works headless and captures only the page.
+
+### What the permission engine sees
+
+Scope alone does not gate anything. The prompt is driven by `AccessKind`, and
+each tool maps onto it explicitly:
+
+| Tool | AccessKind | Effect |
+|---|---|---|
+| `chrome_navigate` (http/https) | `WebFetch(url)` | Domain allowlist and web rules apply |
+| `chrome_navigate` (`file://`) | `Read(path)` | `deny_read_globs` and read rules apply |
+| `chrome_read_page` | `Read(None)` | Auto-allowed |
+| `chrome_click` / `chrome_type` | prompting kind | Prompts |
+| `chrome_screenshot` + `save_path` | `Edit(path)` | Edit rules and plan mode apply |
+| `chrome_screenshot` (inline) | `Read(None)` | Auto-allowed |
+
+A `file://` navigation is a local file read wearing a URL, so it is classified
+as a read of that path rather than as web access — otherwise it would bypass
+the read rules entirely.
+
+### Blocked URL schemes
+
+`devtools:`, `chrome:`, `chrome-untrusted:`, `chrome-extension:`,
+`chrome-search:` and `view-source:` are refused. DevTools frontend pages are
+privileged — they can reach the debugging APIs of the browser driving them —
+and `chrome://` pages are browser controls, not web pages. `javascript:` is
+refused by Chrome itself.
+
+### Where a screenshot may be saved
+
+`save_path` must be absolute (or `~/`), end in `.png`/`.jpg`/`.jpeg`, name a
+directory that already exists, and not already exist. Symlinks are never
+written through. A screenshot cannot plant a config file, a shell profile or
+a workflow definition, and cannot clobber your work.
 
 ### Why navigating counts as a write
 

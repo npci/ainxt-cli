@@ -94,8 +94,7 @@ impl ToolKind {
             | ToolKind::EnterPlan
             | ToolKind::ExitPlan
             | ToolKind::AskUser
-            | ToolKind::ChromeReadPage
-            | ToolKind::ChromeScreenshot => true,
+            | ToolKind::ChromeReadPage => true,
             ToolKind::Edit
             | ToolKind::Delete
             | ToolKind::Write
@@ -119,6 +118,7 @@ impl ToolKind {
             | ToolKind::ChromeNavigate
             | ToolKind::ChromeClick
             | ToolKind::ChromeType
+            | ToolKind::ChromeScreenshot
             | ToolKind::Other => false,
         }
     }

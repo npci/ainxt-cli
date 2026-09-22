@@ -165,10 +165,10 @@ pub(crate) fn kind_allowed(mode: CapabilityMode, kind: ToolKind) -> bool {
         // Browser control. Reading a rendered page is a read; navigating
         // drives a browser carrying the user's logged-in cookies, so a GET
         // alone can act on their behalf — that belongs with the write modes.
-        ChromeReadPage | ChromeScreenshot => {
-            matches!(mode, M::ReadOnly | M::ReadWrite | M::Execute)
-        }
-        ChromeNavigate | ChromeClick | ChromeType => {
+        ChromeReadPage => matches!(mode, M::ReadOnly | M::ReadWrite | M::Execute),
+        // Screenshot sits here, not with the reads: `save_path` writes a
+        // file, so a ReadOnly session must not be handed it.
+        ChromeNavigate | ChromeClick | ChromeType | ChromeScreenshot => {
             matches!(mode, M::ReadWrite | M::Execute)
         }
 

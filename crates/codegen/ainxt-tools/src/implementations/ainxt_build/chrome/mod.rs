@@ -554,8 +554,17 @@ impl ainxt_tool_runtime::Tool for ChromeScreenshotTool {
             )
         })?;
 
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| io_err(&path, e))?;
+        // The directory must already exist: creating arbitrary trees is not
+        // something taking a screenshot should be able to do.
+        match path.parent() {
+            Some(parent) if parent.is_dir() => {}
+            Some(parent) => {
+                return Err(ainxt_tool_runtime::ToolError::execution(
+                    ainxt_tool_protocol::ToolId::new("chrome_screenshot").expect("valid tool id"),
+                    format!("{} does not exist; create it first", parent.display()),
+                ));
+            }
+            None => {}
         }
         std::fs::write(&path, &bytes).map_err(|e| io_err(&path, e))?;
 
@@ -578,45 +587,99 @@ impl ainxt_tool_runtime::Tool for ChromeScreenshotTool {
 }
 
 
-/// Expand `~`, reject a relative path, and give the file the right extension.
+/// Resolve where a screenshot may be written.
+///
+/// This is a file-write primitive driven by a model that reads untrusted web
+/// pages, so it is deliberately narrow: the path is normalised, an existing
+/// file is never overwritten, and a symlink is never followed. `AccessKind`
+/// classifies this as an `Edit` so policy rules see it too — this function is
+/// the second line, not the only one.
 fn resolve_save_path(
     requested: &str,
     mime_type: &str,
 ) -> Result<std::path::PathBuf, ainxt_tool_runtime::ToolError> {
+    let bad = |msg: String| {
+        ainxt_tool_runtime::ToolError::execution(
+            ainxt_tool_protocol::ToolId::new("chrome_screenshot").expect("valid tool id"),
+            msg,
+        )
+    };
+
     let expanded = if let Some(rest) = requested.strip_prefix("~/") {
         dirs::home_dir()
-            .ok_or_else(|| {
-                ainxt_tool_runtime::ToolError::execution(
-                    ainxt_tool_protocol::ToolId::new("chrome_screenshot").expect("valid tool id"),
-                    "could not resolve the home directory for a ~/ path",
-                )
-            })?
+            .ok_or_else(|| bad("could not resolve the home directory for a ~/ path".to_owned()))?
             .join(rest)
     } else {
         std::path::PathBuf::from(requested)
     };
 
     if !expanded.is_absolute() {
-        return Err(ainxt_tool_runtime::ToolError::execution(
-            ainxt_tool_protocol::ToolId::new("chrome_screenshot").expect("valid tool id"),
-            format!("save_path must be absolute or start with ~/, got `{requested}`"),
-        ));
+        return Err(bad(format!(
+            "save_path must be absolute or start with ~/, got `{requested}`"
+        )));
     }
 
-    // A path naming a directory gets a filename; otherwise honour what was
-    // asked for, fixing only a missing or mismatched extension.
+    // `..` is resolved textually rather than via canonicalize, which would
+    // need the file to exist. A path that still contains `..` afterwards
+    // escaped its own root and is refused.
+    let mut normalised = std::path::PathBuf::new();
+    for part in expanded.components() {
+        match part {
+            std::path::Component::ParentDir => {
+                if !normalised.pop() {
+                    return Err(bad(format!("save_path escapes the filesystem root: `{requested}`")));
+                }
+            }
+            std::path::Component::CurDir => {}
+            other => normalised.push(other),
+        }
+    }
+
     let want_ext = if mime_type == "image/jpeg" { "jpg" } else { "png" };
-    if expanded.is_dir() {
+    let target = if normalised.is_dir() {
         let stamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_secs())
             .unwrap_or(0);
-        return Ok(expanded.join(format!("screenshot-{stamp}.{want_ext}")));
+        normalised.join(format!("screenshot-{stamp}.{want_ext}"))
+    } else if normalised.extension().is_none() {
+        normalised.with_extension(want_ext)
+    } else {
+        normalised
+    };
+
+    // Refuse to clobber. symlink_metadata does not follow links, so a symlink
+    // planted at the target is caught here rather than written through.
+    match std::fs::symlink_metadata(&target) {
+        Ok(meta) if meta.file_type().is_symlink() => {
+            return Err(bad(format!(
+                "refusing to write through a symlink at {}",
+                target.display()
+            )));
+        }
+        Ok(_) => {
+            return Err(bad(format!(
+                "{} already exists; screenshots never overwrite an existing file",
+                target.display()
+            )));
+        }
+        Err(_) => {}
     }
-    if expanded.extension().is_none() {
-        return Ok(expanded.with_extension(want_ext));
+
+    // Only an image extension may be written, so a screenshot cannot be used
+    // to plant a config file, a shell profile or a workflow definition.
+    let ext = target
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    if !matches!(ext.as_str(), "png" | "jpg" | "jpeg") {
+        return Err(bad(format!(
+            "save_path must end in .png, .jpg or .jpeg, got `.{ext}`"
+        )));
     }
-    Ok(expanded)
+
+    Ok(target)
 }
 
 /// Wrap a filesystem failure with the path that caused it.
@@ -693,6 +756,32 @@ mod tests {
         let path = resolve_save_path(dir.to_str().unwrap(), "image/png").unwrap();
         assert!(path.starts_with(&dir));
         assert_eq!(path.extension().unwrap(), "png");
+    }
+
+    #[test]
+    fn non_image_extensions_are_refused() {
+        for p in ["/tmp/x.rs", "/tmp/x.yml", "/tmp/x.sh", "/tmp/x.plist"] {
+            let err = resolve_save_path(p, "image/png").unwrap_err();
+            assert!(
+                err.to_string().contains("must end in"),
+                "{p} should be refused, got: {err}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_existing_file_is_never_overwritten() {
+        let path = std::env::temp_dir().join("ainxt-existing-shot-test.png");
+        std::fs::write(&path, b"x").unwrap();
+        let err = resolve_save_path(path.to_str().unwrap(), "image/png").unwrap_err();
+        std::fs::remove_file(&path).ok();
+        assert!(err.to_string().contains("already exists"), "got: {err}");
+    }
+
+    #[test]
+    fn parent_dir_traversal_is_normalised_away() {
+        let path = resolve_save_path("/tmp/a/../b/shot.png", "image/png").unwrap();
+        assert_eq!(path, std::path::PathBuf::from("/tmp/b/shot.png"));
     }
 
     #[test]

@@ -21,13 +21,12 @@ use std::time::{Duration, Instant};
 /// On macOS the cookie values are encrypted with a Keychain key scoped to the
 /// user, not to the profile directory, so a copied `Cookies` file still
 /// decrypts in the new location.
-const CREDENTIAL_FILES: &[&str] = &[
-    "Cookies",
-    "Login Data",
-    "Login Data For Account",
-    "Web Data",
-    "Preferences",
-];
+/// Deliberately only cookies. `Login Data` (saved passwords) and `Web Data`
+/// (autofill, saved cards) would let the agent's browser autofill credentials
+/// and payment details into forms it clicks — capability the stated goal,
+/// "stay logged in", does not need. Copying them widens the blast radius of
+/// every later mistake for no benefit.
+const CREDENTIAL_FILES: &[&str] = &["Cookies"];
 
 /// Where Chrome keeps the real profile, per platform.
 fn default_user_data_dir() -> Option<PathBuf> {
@@ -200,7 +199,7 @@ impl Drop for LaunchedChrome {
 pub async fn launch(config: &LaunchConfig) -> Result<LaunchedChrome> {
     // Reuse a Chrome already serving DevTools on this port rather than
     // spawning a second one that would only abort on the profile lock.
-    if let Some(ws_url) = existing_instance(config.port).await {
+    if let Some(ws_url) = existing_instance(config.port, &config.user_data_dir).await {
         tracing::info!("reusing Chrome already on port {}", config.port);
         return Ok(LaunchedChrome {
             child: None,
@@ -248,7 +247,19 @@ pub async fn launch(config: &LaunchConfig) -> Result<LaunchedChrome> {
 /// directory, so spawning a second one aborts on the profile lock. Reusing
 /// the running instance is both correct and what the user expects — their
 /// tabs are still there.
-async fn existing_instance(port: u16) -> Option<String> {
+async fn existing_instance(port: u16, user_data_dir: &Path) -> Option<String> {
+    // Chrome writes the live debugging port into its own profile directory.
+    // If that file does not name this port, whatever is listening is not the
+    // Chrome we own — it could be another automation setup driving the user's
+    // real profile, or a local process impersonating DevTools to capture
+    // every command we send and feed us fabricated page content.
+    let active = std::fs::read_to_string(user_data_dir.join("DevToolsActivePort")).ok()?;
+    let claimed: u16 = active.lines().next()?.trim().parse().ok()?;
+    if claimed != port {
+        tracing::debug!("port {port} is in use by a Chrome that is not ours; not reusing it");
+        return None;
+    }
+
     let client = reqwest::Client::new();
     let body: serde_json::Value = client
         .get(format!("http://127.0.0.1:{port}/json/version"))
@@ -259,7 +270,23 @@ async fn existing_instance(port: u16) -> Option<String> {
         .json()
         .await
         .ok()?;
-    body.get("webSocketDebuggerUrl")?.as_str().map(str::to_owned)
+    let ws = body.get("webSocketDebuggerUrl")?.as_str()?;
+    // Never follow an endpoint off this machine, whatever the reply says.
+    if !is_loopback_ws(ws) {
+        tracing::warn!("DevTools endpoint pointed off-host ({ws}); refusing to attach");
+        return None;
+    }
+    Some(ws.to_owned())
+}
+
+/// True when a DevTools WebSocket URL points at this machine.
+fn is_loopback_ws(ws: &str) -> bool {
+    let Some(rest) = ws.strip_prefix("ws://") else {
+        return false;
+    };
+    let host = rest.split('/').next().unwrap_or_default();
+    let host = host.rsplit_once(':').map(|(h, _)| h).unwrap_or(host);
+    matches!(host, "127.0.0.1" | "localhost" | "[::1]" | "::1")
 }
 
 /// Poll the DevTools HTTP endpoint until it serves a browser WebSocket URL.
@@ -298,6 +325,20 @@ mod tests {
         // Never the real profile — that is the whole point of the copy.
         assert!(cfg.user_data_dir.ends_with(".ainxt/chrome-profile"));
         assert_ne!(Some(cfg.user_data_dir.clone()), default_user_data_dir());
+    }
+
+    #[test]
+    fn only_loopback_devtools_endpoints_are_adopted() {
+        assert!(is_loopback_ws("ws://127.0.0.1:9222/devtools/browser/abc"));
+        assert!(is_loopback_ws("ws://localhost:9222/devtools/browser/abc"));
+        assert!(!is_loopback_ws("ws://attacker.example/x"));
+        assert!(!is_loopback_ws("ws://10.0.0.5:9222/devtools/browser/abc"));
+        assert!(!is_loopback_ws("wss://attacker.example/x"));
+    }
+
+    #[test]
+    fn the_seed_copies_cookies_only_not_passwords_or_cards() {
+        assert_eq!(CREDENTIAL_FILES, &["Cookies"]);
     }
 
     #[test]

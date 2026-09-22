@@ -30,6 +30,13 @@ pub enum ChromeError {
     #[error("DevTools connection closed while awaiting a response")]
     ConnectionClosed,
 
+    /// A URL used a scheme that grants more than page browsing.
+    #[error(
+        "refusing to open `{url}`: the `{scheme}:` scheme reaches browser \
+         internals rather than a web page"
+    )]
+    BlockedScheme { scheme: String, url: String },
+
     /// Chrome returned an error for a CDP command.
     #[error("CDP command `{method}` failed: {message}")]
     Command { method: String, message: String },

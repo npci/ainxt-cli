@@ -43,6 +43,8 @@ impl Page {
 
     /// Navigate to `url` and wait until the document is ready.
     pub async fn navigate(&self, url: &str, timeout: Duration) -> Result<PageInfo> {
+        validate_scheme(url)?;
+
         let result = self
             .session
             .call("Page.navigate", serde_json::json!({ "url": url }))
@@ -476,6 +478,45 @@ fn format_ax_node(node: &serde_json::Value, depth: usize) -> Option<String> {
     Some(line)
 }
 
+
+/// Schemes a browsing agent has no business loading.
+///
+/// `devtools://` pages run the DevTools frontend, which is privileged: it can
+/// reach the debugging APIs of the very browser driving it. `chrome://` and
+/// its aliases expose browser internals — `chrome://net-export`,
+/// `chrome://settings` and friends are not pages, they are controls. Chrome
+/// itself already refuses top-level `javascript:` navigation over CDP, which
+/// is why that scheme is not listed here; it is blocked anyway.
+///
+/// `file://` is deliberately still allowed: previewing a locally built page
+/// is a real thing a coding agent does. It does mean navigate-plus-read can
+/// read any file the user can, which is no more than the agent's own file
+/// tools grant — but it is worth knowing when the Chrome tools are handed to
+/// a session whose file access is otherwise restricted.
+const BLOCKED_SCHEMES: &[&str] = &[
+    "devtools:",
+    "chrome:",
+    "chrome-untrusted:",
+    "chrome-extension:",
+    "chrome-search:",
+    "view-source:",
+];
+
+/// Reject a URL whose scheme grants more than page browsing.
+fn validate_scheme(url: &str) -> Result<()> {
+    let lowered = url.trim().to_ascii_lowercase();
+    if let Some(blocked) = BLOCKED_SCHEMES
+        .iter()
+        .find(|s| lowered.starts_with(*s))
+    {
+        return Err(ChromeError::BlockedScheme {
+            scheme: blocked.trim_end_matches(':').to_owned(),
+            url: url.to_owned(),
+        });
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -512,6 +553,34 @@ mod tests {
         assert!(!out.contains("generic"));
         // Depth did not advance past the skipped wrapper.
         assert!(out.starts_with("link"), "got {out:?}");
+    }
+
+    #[test]
+    fn privileged_schemes_are_refused() {
+        for url in [
+            "devtools://devtools/bundled/devtools_app.html",
+            "chrome://version",
+            "CHROME://settings",
+            "  chrome-extension://abc/page.html",
+            "view-source:https://example.com",
+        ] {
+            assert!(
+                validate_scheme(url).is_err(),
+                "{url} should be refused"
+            );
+        }
+    }
+
+    #[test]
+    fn ordinary_browsing_schemes_are_allowed() {
+        for url in [
+            "https://example.com",
+            "http://localhost:3000/app",
+            "file:///tmp/build/index.html",
+            "data:text/html,<h1>hi</h1>",
+        ] {
+            assert!(validate_scheme(url).is_ok(), "{url} should be allowed");
+        }
     }
 
     #[test]
