@@ -1,0 +1,25 @@
+[package]
+license = "Apache-2.0"
+edition.workspace = true
+name = "ainxt-chrome"
+version = "0.1.0"
+description = "Chrome DevTools Protocol client — launch, attach, drive a Chrome instance"
+
+[dependencies]
+anyhow = { workspace = true }
+dirs = { workspace = true }
+futures-util = { workspace = true }
+reqwest = { workspace = true, features = ["rustls-tls", "json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros", "process", "sync", "time", "fs"] }
+tokio-tungstenite = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["test-util", "rt-multi-thread"] }
+
+[lints]
+workspace = true

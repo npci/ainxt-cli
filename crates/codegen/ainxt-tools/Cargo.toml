@@ -57,6 +57,7 @@ serde_path_to_error = { workspace = true }
 ainxt-tool-runtime = { workspace = true }
 ainxt-tool-types = { workspace = true }
 ainxt-tool-protocol = { workspace = true }
+ainxt-chrome = { workspace = true }
 ainxt-computer-hub-core = { workspace = true }
 ainxt-computer-hub-sdk = { workspace = true }
 

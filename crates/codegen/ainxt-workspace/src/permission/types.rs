@@ -281,6 +281,40 @@ impl From<&ainxt_tools::types::ToolInput> for AccessKind {
                 input: u.tool_input.clone(),
             },
             ToolInput::WebFetch(wf) => AccessKind::WebFetch(wf.url.clone()),
+            // Chrome tools drive a browser holding the user's live sessions,
+            // so they must reach the same policy surface as anything else
+            // that touches the network or the filesystem. `ToolScope` does
+            // NOT gate the prompt — only `AccessKind` does — so a tool absent
+            // from this match is silently auto-allowed.
+            //
+            // A `file://` navigation is a local file read wearing a URL, so
+            // it is classified as a read of that path: `deny_read_globs` and
+            // `Read` rules then apply exactly as they do to `read_file`.
+            ToolInput::ChromeNavigate(nav) => match nav.url.strip_prefix("file://") {
+                Some(path) => AccessKind::Read(Some(path.to_owned())),
+                None => AccessKind::WebFetch(nav.url.clone()),
+            },
+            // Clicking and typing act on the page with the user's cookies, so
+            // they are mutations of remote state, not reads.
+            ToolInput::ChromeClick(c) => {
+                AccessKind::MCPTool {
+                    name: "chrome_click".to_owned(),
+                    input: serde_json::json!({ "element_ref": c.element_ref }),
+                }
+            }
+            ToolInput::ChromeType(ty) => AccessKind::MCPTool {
+                name: "chrome_type".to_owned(),
+                // The text itself is deliberately omitted: it reaches
+                // telemetry from here, and the user can see what is being
+                // typed in the browser window.
+                input: serde_json::json!({ "element_ref": ty.element_ref }),
+            },
+            // Saving writes a file; capturing does not.
+            ToolInput::ChromeScreenshot(s) => match &s.save_path {
+                Some(path) => AccessKind::Edit(path.clone()),
+                None => AccessKind::Read(None),
+            },
+            ToolInput::ChromeReadPage(_) => AccessKind::Read(None),
             ToolInput::Dynamic(_) => AccessKind::Read(None),
             #[allow(unreachable_patterns)]
             _ => AccessKind::Read(None),

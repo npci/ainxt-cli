@@ -69,3 +69,15 @@ Automate, script, and integrate AiNxt CLI with other systems.
 | 20 | [Background Tasks and Monitoring](20-background-tasks.md) | `background: true`, `/loop`, `monitor`, and `Ctrl+G` to demote |
 | 21 | [Terminal Support and Troubleshooting](21-terminal-support.md) | tmux, SSH, truecolor, clipboard, and OSC 52 |
 | 22 | [Permissions and Safety Controls](22-permissions-and-safety.md) | `dontAsk` mode, auto-approved tools, the safe-bash list, and restrictive PreToolUse hooks (such as git/gh-only) |
+
+---
+
+## Fork-specific
+
+Features added in this fork with no upstream counterpart. Numbered from 28 to
+stay clear of upstream's `25-status-line`, `26-config-reference` and
+`27-grok-clone`.
+
+| # | Document | Description |
+|---|----------|-------------|
+| 28 | [Chrome](28-chrome.md) | Drive a real Chrome over the DevTools Protocol, signed in as you |

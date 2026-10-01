@@ -678,6 +678,11 @@ impl ToolRegistryBuilder {
         b.register::<ainxt_build::TaskTool>();
         b.register::<ainxt_build::WebSearchTool>();
         b.register_with_params::<ainxt_build::WebFetchTool, ainxt_build::web_fetch::WebFetchParams>();
+        b.register::<ainxt_build::ChromeNavigateTool>();
+        b.register::<ainxt_build::ChromeReadPageTool>();
+        b.register::<ainxt_build::ChromeClickTool>();
+        b.register::<ainxt_build::ChromeTypeTool>();
+        b.register::<ainxt_build::ChromeScreenshotTool>();
         b.register::<ainxt_build::LspTool>();
         b.register::<ainxt_build::EnterPlanModeTool>();
         b.register::<ainxt_build::ExitPlanModeTool>();
@@ -1026,6 +1031,23 @@ impl ToolRegistryBuilder {
                     tracing::warn!("Failed to create VideoGenClient: {e}");
                 }
             }
+        }
+        // Chrome tools share one lazily-launched browser per session, so the
+        // client goes in whenever either tool is registered. Constructing it
+        // starts no process — Chrome launches on the first actual call.
+        if config.tools.iter().any(|tc| {
+            matches!(
+                self.tools.get(&tc.id).map(|e| e.kind),
+                Some(crate::types::tool::ToolKind::ChromeNavigate)
+                    | Some(crate::types::tool::ToolKind::ChromeReadPage)
+                    | Some(crate::types::tool::ToolKind::ChromeClick)
+                    | Some(crate::types::tool::ToolKind::ChromeType)
+                    | Some(crate::types::tool::ToolKind::ChromeScreenshot)
+            )
+        }) {
+            resources.insert(crate::implementations::ainxt_build::ChromeClient::new(
+                crate::implementations::ainxt_build::ChromeParams::default(),
+            ));
         }
         if let crate::implementations::ainxt_build::web_fetch::WebFetchConfig::Enabled { params } =
             &ctx.web_fetch_config
