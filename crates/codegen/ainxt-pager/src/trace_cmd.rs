@@ -33,19 +33,17 @@ struct TraceResult {
 }
 
 pub async fn run(args: TraceArgs, agent_config: &AgentConfig) -> Result<()> {
+    let TraceArgs {
+        session_id: bundle_id,
+        ..
+    } = &args;
     if args.local {
-        return run_export(
-            &args.session_id,
-            args.output.as_deref(),
-            args.json,
-            agent_config,
-        )
-        .await;
+        return run_export(bundle_id, args.output.as_deref(), args.json, agent_config).await;
     }
 
     if !agent_config.is_trace_upload_enabled() {
         tracing::warn!(
-            session_id = %args.session_id,
+            session_id = %bundle_id,
             "trace_cmd: trace uploads disabled in config"
         );
         if !args.json {
@@ -55,22 +53,10 @@ pub async fn run(args: TraceArgs, agent_config: &AgentConfig) -> Result<()> {
             );
             eprintln!("Falling back to local export.");
         }
-        return run_export(
-            &args.session_id,
-            args.output.as_deref(),
-            args.json,
-            agent_config,
-        )
-        .await;
+        return run_export(bundle_id, args.output.as_deref(), args.json, agent_config).await;
     }
 
-    run_upload(
-        &args.session_id,
-        args.output.as_deref(),
-        args.json,
-        agent_config,
-    )
-    .await
+    run_upload(bundle_id, args.output.as_deref(), args.json, agent_config).await
 }
 
 // ---------------------------------------------------------------------------
@@ -79,14 +65,14 @@ pub async fn run(args: TraceArgs, agent_config: &AgentConfig) -> Result<()> {
 
 pub fn build_session_tar(
     session_dir: &Path,
-    session_id: &str,
+    bundle_id: &str,
     agent_config: &AgentConfig,
 ) -> Result<Vec<u8>> {
     use flate2::Compression;
     use flate2::write::GzEncoder;
 
     tracing::info!(
-        session_id = %session_id,
+        session_id = %bundle_id,
         session_dir = %session_dir.display(),
         "trace_cmd: building session tar.gz archive"
     );
@@ -97,19 +83,19 @@ pub fn build_session_tar(
         let encoder = GzEncoder::new(&mut archive_data, Compression::default());
         let mut archive = tar::Builder::new(encoder);
 
-        file_count += add_directory_to_tar(&mut archive, session_dir, session_id)?;
+        file_count += add_directory_to_tar(&mut archive, session_dir, bundle_id)?;
 
         let trace_config = build_trace_config_snapshot(agent_config);
         let config_bytes = serde_json::to_vec_pretty(&trace_config)?;
         append_bytes(
             &mut archive,
-            &format!("{session_id}/trace_config.json"),
+            &format!("{bundle_id}/trace_config.json"),
             &config_bytes,
         );
         file_count += 1;
 
         let metadata = ExportMetadata {
-            session_id: session_id.to_owned(),
+            session_id: bundle_id.to_owned(),
             ainxt_version: env!("VERSION_WITH_COMMIT").to_owned(),
             os: std::env::consts::OS.to_owned(),
             arch: std::env::consts::ARCH.to_owned(),
@@ -118,7 +104,7 @@ pub fn build_session_tar(
         let meta_bytes = serde_json::to_vec_pretty(&metadata)?;
         append_bytes(
             &mut archive,
-            &format!("{session_id}/export_metadata.json"),
+            &format!("{bundle_id}/export_metadata.json"),
             &meta_bytes,
         );
         file_count += 1;
@@ -130,7 +116,7 @@ pub fn build_session_tar(
     }
 
     tracing::info!(
-        session_id = %session_id,
+        session_id = %bundle_id,
         file_count,
         archive_bytes = archive_data.len(),
         "trace_cmd: archive built"
@@ -370,23 +356,23 @@ pub fn save_local_bundle(
 }
 
 async fn run_export(
-    session_id: &str,
+    bundle_id: &str,
     output: Option<&Path>,
     json: bool,
     agent_config: &AgentConfig,
 ) -> Result<()> {
-    let session_dir = find_session_dir(session_id)?;
+    let session_dir = find_session_dir(bundle_id)?;
     if !json {
         eprintln!("Found session at: {}", session_dir.display());
         eprintln!("Building session trace archive...");
     }
 
-    let archive = build_session_tar(&session_dir, session_id, agent_config)?;
-    let output_path = save_local_bundle(&archive, session_id, output)?;
+    let archive = build_session_tar(&session_dir, bundle_id, agent_config)?;
+    let output_path = save_local_bundle(&archive, bundle_id, output)?;
 
     if json {
         let result = TraceResult {
-            session_id: session_id.to_owned(),
+            session_id: bundle_id.to_owned(),
             status: "exported",
             url: None,
             local_path: Some(output_path.display().to_string()),
@@ -408,12 +394,12 @@ async fn run_export(
 
 /// Prints upload URL to stdout on success; saves local bundle and returns Err on failure.
 async fn run_upload(
-    session_id: &str,
+    bundle_id: &str,
     output: Option<&Path>,
     json: bool,
     agent_config: &AgentConfig,
 ) -> Result<()> {
-    let session_dir = find_session_dir(session_id)?;
+    let session_dir = find_session_dir(bundle_id)?;
     if !json {
         eprintln!("Found session at: {}", session_dir.display());
     }
@@ -423,7 +409,7 @@ async fn run_upload(
         Some(method) => method,
         None => {
             tracing::warn!(
-                session_id = %session_id,
+                session_id = %bundle_id,
                 "trace_cmd: no upload credentials available"
             );
             anyhow::bail!(
@@ -437,7 +423,7 @@ async fn run_upload(
     if !json {
         eprintln!("Building session trace archive...");
     }
-    let archive = build_session_tar(&session_dir, session_id, agent_config)?;
+    let archive = build_session_tar(&session_dir, bundle_id, agent_config)?;
     let archive_size = archive.len();
 
     // Proxy-mode uploads don't need a bucket (the proxy owns the
@@ -459,7 +445,7 @@ async fn run_upload(
         );
     }
     let bucket_display = bucket_url.as_deref().unwrap_or("proxy-managed");
-    let object_path = format!("{session_id}/trace_export.tar.gz");
+    let object_path = format!("{bundle_id}/trace_export.tar.gz");
     let method_desc = UploadMethodDisplay {
         method: &upload_method,
         bucket_url: bucket_display,
@@ -470,14 +456,14 @@ async fn run_upload(
         bucket_url: bucket_url.clone(),
         service_account_key: None,
         prefix_dir: None,
-        gcs_prefix: Some(session_id.to_string()),
+        gcs_prefix: Some(bundle_id.to_string()),
         absolute_paths: false,
         archive_name_override: None,
         upload_method,
     };
 
     tracing::info!(
-        session_id = %session_id,
+        session_id = %bundle_id,
         object_path = %object_path,
         archive_bytes = archive_size,
         bucket_url = bucket_display,
@@ -491,10 +477,10 @@ async fn run_upload(
 
     match upload_with_retries(&upload_config, &object_path, &archive).await {
         Ok(url) => {
-            tracing::info!(session_id = %session_id, url = %url, "trace_cmd: upload succeeded");
+            tracing::info!(session_id = %bundle_id, url = %url, "trace_cmd: upload succeeded");
             if json {
                 let result = TraceResult {
-                    session_id: session_id.to_owned(),
+                    session_id: bundle_id.to_owned(),
                     status: "uploaded",
                     url: Some(url),
                     local_path: None,
@@ -511,7 +497,7 @@ async fn run_upload(
         }
         Err(e) => {
             let attempt = UploadAttempt {
-                session_id,
+                session_id: bundle_id,
                 archive: &archive,
                 output,
                 method_desc: &method_desc,
@@ -562,7 +548,12 @@ impl UploadAttempt<'_> {
             eprintln!("Trace upload failed: {error}");
             eprintln!("  Bundle: {}", export_path.display());
             eprintln!("  Log:    {}", log_path.display());
-            eprintln!("  Retry:  ainxt trace {}", self.session_id);
+            let UploadAttempt {
+                session_id: retry_ref,
+                ..
+            } = self;
+            let retry_id: &str = retry_ref;
+            eprintln!("  Retry:  ainxt trace {}", retry_id);
             println!("{}", export_path.display());
         }
 

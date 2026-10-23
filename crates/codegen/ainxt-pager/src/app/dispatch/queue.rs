@@ -1836,7 +1836,7 @@ mod tests {
         assert!(
             matches!(&effects[0], Effect::SendPrompt { text, .. } if text == "p3-edited"),
             "should send the edited prompt, got: {:?}",
-            effects[0]
+            crate::app::actions::effect_kinds(&effects[0])
         );
         // p4 should still be in queue.
         assert_eq!(app.agents[&id].session.queue_len(), 1);
@@ -1895,7 +1895,8 @@ mod tests {
         assert_eq!(
             effects.len(),
             1,
-            "queued prompt must drain once reconnect clears, got: {effects:?}"
+            "queued prompt must drain once reconnect clears, got: {effects:?}",
+            effects = crate::app::actions::effect_kinds(&effects),
         );
         assert!(matches!(&effects[0], Effect::SendPrompt { .. }));
         assert!(app.agents[&id].session.state.is_turn_running());

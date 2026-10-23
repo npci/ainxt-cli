@@ -194,11 +194,11 @@ async fn agent_session_writes_named_session_file() {
         )
         .await;
         client.initialize_with_timeout().await;
-        let session_id = client.create_session_with_timeout(workdir.path()).await;
+        let created = client.create_session_with_timeout(workdir.path()).await;
         // New session ids are UUID v7 (filesystem-safe), so the firehose file is
         // named unchanged `<sessionId>.txt`.
-        let sid = session_id.0.to_string();
-        let _ = client.prompt_with_timeout(&session_id, "say hi").await;
+        let sid = created.0.to_string();
+        let _ = client.prompt_with_timeout(&created, "say hi").await;
 
         let session_file = ainxt_home.join("debug").join(format!("{sid}.txt"));
         read_session_firehose_when_ready(&session_file, &client).await;
@@ -248,9 +248,9 @@ async fn debug_flag_master_switch_enables_firehose() {
         )
         .await;
         client.initialize_with_timeout().await;
-        let session_id = client.create_session_with_timeout(workdir.path()).await;
-        let sid = session_id.0.to_string();
-        let _ = client.prompt_with_timeout(&session_id, "say hi").await;
+        let created = client.create_session_with_timeout(workdir.path()).await;
+        let sid = created.0.to_string();
+        let _ = client.prompt_with_timeout(&created, "say hi").await;
 
         let session_file = ainxt_home.join("debug").join(format!("{sid}.txt"));
         read_session_firehose_when_ready(&session_file, &client).await;

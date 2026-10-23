@@ -623,14 +623,18 @@ async fn run_auth_flow_inner(
         return crate::auth::oidc::run_login_flow(ainxt_com_config, auth_manager, channels).await;
     }
 
-    if let Some(ref oauth2_cfg) = ainxt_com_config.oauth2 {
+    let AinxtComConfig {
+        oauth2: first_party_provider,
+        ..
+    } = ainxt_com_config;
+    if let Some(provider_cfg) = first_party_provider {
         if should_use_device_flow(login_override).await {
             // On `NotEnabled` (no device endpoint) `channels` is untouched,
             // so we can fall back to loopback below.
             match crate::auth::device_code::run_device_code_login_channels(
-                &oauth2_cfg.issuer,
-                &oauth2_cfg.client_id,
-                &oauth2_cfg.scopes,
+                &provider_cfg.issuer,
+                &provider_cfg.client_id,
+                &provider_cfg.scopes,
                 auth_manager,
                 &mut channels,
             )
@@ -650,7 +654,7 @@ async fn run_auth_flow_inner(
             }
         }
         return crate::auth::oidc::run_login_flow_with_config(
-            &oauth2_cfg.as_oidc(),
+            &provider_cfg.as_oidc(),
             auth_manager,
             channels,
         )

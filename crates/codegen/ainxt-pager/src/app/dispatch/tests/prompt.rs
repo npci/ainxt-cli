@@ -441,7 +441,7 @@ fn send_prompt_mid_text_skill_token_carries_ranges() {
             assert_eq!(text, "great /pr-workflow all good now");
             assert_eq!(skill_token_ranges, &vec![6..18]);
         }
-        other => panic!("expected SendPrompt, got {other:?}"),
+        other => panic!("expected SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     // The drained echo block styles exactly the composer-recognized token.
     match &app.agents[&id].scrollback.get(0).unwrap().block {
@@ -466,7 +466,7 @@ fn send_prompt_unknown_token_has_empty_ranges() {
         Effect::SendPrompt {
             skill_token_ranges, ..
         } => assert!(skill_token_ranges.is_empty()),
-        other => panic!("expected SendPrompt, got {other:?}"),
+        other => panic!("expected SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     match &app.agents[&id].scrollback.get(0).unwrap().block {
         RenderBlock::UserPrompt(b) => assert!(b.skill_token_ranges.is_empty()),
@@ -511,7 +511,7 @@ fn image_prompt_with_ranges_styles_echo_but_wire_meta_absent() {
                 "images path is known-plain on replay: no ranges meta"
             );
         }
-        other => panic!("expected SendPromptBlocks, got {other:?}"),
+        other => panic!("expected SendPromptBlocks, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -529,7 +529,8 @@ fn send_prompt_leading_skill_keeps_inject_skill_path() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::SendPromptBlocks { .. })),
-        "leading skill must send structured blocks, got {effects:?}"
+        "leading skill must send structured blocks, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     match &app.agents[&id].scrollback.get(0).unwrap().block {
         RenderBlock::UserPrompt(b) => {
@@ -608,7 +609,8 @@ fn chip_submit_while_enqueued_clears_follow_up_chips() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::SendPrompt { text, .. } if text == "Summarize")),
-        "chip must be enqueued, not immediate-sent, got {effects:?}"
+        "chip must be enqueued, not immediate-sent, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // The chips are cleared on the enqueue path too (the bug fix).
     assert!(
@@ -637,7 +639,7 @@ fn send_prompt_while_running_queues_without_drain() {
             assert_eq!(text, "queued");
             prompt_id.clone()
         }
-        other => panic!("expected immediate SendPrompt, got {other:?}"),
+        other => panic!("expected immediate SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     };
     // Not in the local queue; turn state unchanged (no new turn started).
     assert_eq!(app.agents[&id].session.queue_len(), 0);
@@ -681,7 +683,8 @@ fn send_while_running_with_pending_local_prompt_preserves_fifo() {
     // drain since the turn is running).
     assert!(
         effects.is_empty(),
-        "must not immediate-send while a local prompt is pending, got {effects:?}"
+        "must not immediate-send while a local prompt is pending, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // "3" joined the LOCAL queue behind "2" (FIFO preserved).
     let agent = &app.agents[&id];
@@ -729,7 +732,7 @@ fn turn_end_drains_next_queued_prompt() {
             assert_eq!(text, "second");
             prompt_id.clone()
         }
-        other => panic!("expected immediate SendPrompt, got {other:?}"),
+        other => panic!("expected immediate SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     };
     assert_eq!(app.agents[&id].session.queue_len(), 0);
 
@@ -916,7 +919,7 @@ fn turn_end_fetches_prompt_suggestion_when_enabled() {
         &mut app,
     );
 
-    assert_eq!(effects.len(), 2, "suggestion fetch + billing: {effects:?}");
+    assert_eq!(effects.len(), 2, "suggestion fetch + billing: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     let Effect::FetchPromptSuggestion {
         agent_id,
         generation,
@@ -924,7 +927,7 @@ fn turn_end_fetches_prompt_suggestion_when_enabled() {
         session_id,
     } = &effects[0]
     else {
-        panic!("expected FetchPromptSuggestion first, got {effects:?}");
+        panic!("expected FetchPromptSuggestion first, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     };
     assert_eq!(*agent_id, id);
     assert!(session_id.is_some());
@@ -980,7 +983,8 @@ fn cancelled_turn_does_not_fetch_prompt_suggestion() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::FetchPromptSuggestion { .. })),
-        "cancelled turn must not fetch a suggestion: {effects:?}"
+        "cancelled turn must not fetch a suggestion: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !app.agents[&id].prompt.prompt_suggestion.has_suggestion(),
@@ -1015,7 +1019,8 @@ fn turn_end_with_draft_does_not_fetch_prompt_suggestion() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::FetchPromptSuggestion { .. })),
-        "a draft suppresses the suggestion fetch: {effects:?}"
+        "a draft suppresses the suggestion fetch: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1052,7 +1057,8 @@ fn reconnect_pending_turn_end_still_wipes_prompt_suggestion() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::FetchPromptSuggestion { .. })),
-        "reconnect-pending turn end must not fetch a suggestion: {effects:?}"
+        "reconnect-pending turn end must not fetch a suggestion: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !app.agents[&id].prompt.prompt_suggestion.has_suggestion(),
@@ -1098,7 +1104,8 @@ fn turn_end_with_shared_queue_does_not_fetch_prompt_suggestion() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::FetchPromptSuggestion { .. })),
-        "a non-empty server shared queue suppresses the suggestion fetch: {effects:?}"
+        "a non-empty server shared queue suppresses the suggestion fetch: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1323,7 +1330,7 @@ fn turn_complete_notification_suppressed_when_queue_non_empty() {
     let effects = dispatch(Action::SendPrompt("second".into()), &mut app);
     let pid_second = match &effects[0] {
         Effect::SendPrompt { prompt_id, .. } => prompt_id.clone(),
-        other => panic!("expected immediate SendPrompt, got {other:?}"),
+        other => panic!("expected immediate SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     };
     // Model the leader's running=second broadcast arriving before first's
     // PromptResponse (stashed adoption ⇒ next turn is about to start).
@@ -1421,7 +1428,8 @@ fn cancel_hands_queue_to_agent_without_reordering() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CancelTurn { .. })),
-        "must emit CancelTurn, got {effects:?}"
+        "must emit CancelTurn, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // q1's optimistic echo is left in place — it runs next, and the
     // broadcast (not a client-side retire) reconciles it.
@@ -1893,7 +1901,8 @@ fn prompt_response_does_not_drain_during_reconnect() {
         effects
             .iter()
             .all(|e| !matches!(e, Effect::SendPrompt { .. })),
-        "should not drain queue during reconnect, got: {effects:?}"
+        "should not drain queue during reconnect, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(app.agents[&id].session.queue_len(), 1);
 }
@@ -2266,7 +2275,8 @@ fn agent_send_before_paste_probe_keeps_image() {
     });
     assert!(
         sent_image,
-        "the re-issued send must carry the pasted image; effects = {effects:?}"
+        "the re-issued send must carry the pasted image; effects = {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -2349,7 +2359,8 @@ fn interject_before_paste_probe_keeps_image() {
     });
     assert!(
         sent_image,
-        "the re-issued send-now must carry the pasted image; effects = {effects:?}"
+        "the re-issued send-now must carry the pasted image; effects = {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(
         app.agents[&id].prompt.text(),
@@ -2522,7 +2533,8 @@ fn minimal_mode_blocks_fullscreen_pane_slash_command() {
     let effects = dispatch_send_prompt(&mut app, "/find foo".to_string());
     assert!(
         effects.is_empty(),
-        "a gated command must not produce effects, got: {effects:?}"
+        "a gated command must not produce effects, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(
         agent_scrollback_len(&app),
@@ -2566,7 +2578,7 @@ fn show_queue_empty_commits_empty_message() {
     let mut app = test_app_with_agent();
     let before = agent_scrollback_len(&app);
     let effects = dispatch(Action::ShowQueue, &mut app);
-    assert!(effects.is_empty(), "got: {effects:?}");
+    assert!(effects.is_empty(), "got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert_eq!(agent_scrollback_len(&app), before + 1);
     assert_eq!(last_system_text(&app, AgentId(0)), "Queue is empty.");
 }
@@ -2582,7 +2594,7 @@ fn show_queue_lists_local_prompts_in_order() {
             .enqueue_prompt("second\nwith two lines".to_string());
     }
     let effects = dispatch(Action::ShowQueue, &mut app);
-    assert!(effects.is_empty(), "got: {effects:?}");
+    assert!(effects.is_empty(), "got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     let text = last_system_text(&app, AgentId(0));
     assert!(text.contains("Queued prompts (2):"), "got: {text:?}");
     assert!(text.contains("#1  first prompt"), "got: {text:?}");
@@ -2761,7 +2773,8 @@ fn plain_send_during_blocking_wait_arms_expectation_and_suppresses_marker() {
     let effects = dispatch(Action::SendPrompt("wake up and do this".into()), &mut app);
     assert!(
         matches!(effects.as_slice(), [Effect::SendPrompt { .. }]),
-        "mid-turn plain prompt takes the immediate server send, got {effects:?}"
+        "mid-turn plain prompt takes the immediate server send, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents[&id].expect_send_now_cancel.is_some(),
@@ -2904,7 +2917,8 @@ fn send_prompt_now_during_reconnect_requeues_locally() {
     );
     assert!(
         effects.is_empty(),
-        "no effect may fire while reconnecting, got {effects:?}"
+        "no effect may fire while reconnecting, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = &app.agents[&id];
     assert_eq!(
@@ -3184,7 +3198,8 @@ fn suggestion_debounce_after_bash_exit_fetches_nothing() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::FetchShellSuggestions { .. })),
-        "in-mode debounce must fetch: {effects:?}"
+        "in-mode debounce must fetch: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 
     // Mode exited between debounce arm and expiry: no fetch.
@@ -3201,7 +3216,8 @@ fn suggestion_debounce_after_bash_exit_fetches_nothing() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::FetchShellSuggestions { .. })),
-        "post-exit debounce must fetch nothing: {effects:?}"
+        "post-exit debounce must fetch nothing: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -3257,7 +3273,7 @@ fn suggestions_landing_after_bash_exit_are_dropped() {
         }),
         &mut app,
     );
-    assert!(effects.is_empty(), "landing is a no-op: {effects:?}");
+    assert!(effects.is_empty(), "landing is a no-op: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     let agent = &app.agents[&id];
     assert!(
         !agent.prompt.has_ghost_text(),
@@ -3343,7 +3359,8 @@ fn tab_fetch_landing_insta_accepts_single_candidate_always_on() {
                 ..
             }
         )),
-        "the accept's drill-down refetch must ride out with the dispatch: {effects:?}"
+        "the accept's drill-down refetch must ride out with the dispatch: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -3515,6 +3532,7 @@ fn suggestion_debounce_routes_by_agent_id_not_active_view() {
                 ..
             }
         )),
-        "expiry must fetch for the arming agent even off-screen: {effects:?}"
+        "expiry must fetch for the arming agent even off-screen: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }

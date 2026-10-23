@@ -35,6 +35,7 @@ fn dispatch_confirm_reset_setting_reset_dispatches_set_permission_mode_for_permi
     assert!(
         has_persist,
         "Reset of permission_mode must emit PersistPermissionMode, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // Agent's yolo flag is reset to default (off).
     assert!(
@@ -204,6 +205,7 @@ fn set_permission_mode_always_approve_blocked_by_policy_pin() {
     assert!(
         effects.is_empty(),
         "blocked modal commit must not persist, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(!app.agents[&AgentId(0)].session.is_yolo());
     assert_eq!(
@@ -250,7 +252,8 @@ fn set_permission_mode_auto_persists_without_yolo() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(auto), got {effects:?}"
+        "expected PersistPermissionMode(auto), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -279,7 +282,8 @@ fn set_permission_mode_auto_degrades_to_ask_when_gated_off() {
                 ..
             }
         )),
-        "gate OFF: must not persist 'auto', got {effects:?}"
+        "gate OFF: must not persist 'auto', got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -422,7 +426,7 @@ fn set_permission_mode_ask_emits_brand_consistent_toast() {
                 "prior canonical was 'always-approve' (pre-set by SetYoloMode(true))",
             );
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -469,7 +473,7 @@ fn set_permission_mode_with_live_yolo_and_no_ui_mirror_rolls_back_to_always_appr
                      the pager from the shell",
             );
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -507,6 +511,7 @@ fn rollback_permission_mode_default_canonical_preserves_default() {
     assert!(
         effects.is_empty(),
         "rollback path must not re-emit Effects, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 
     // Yolo flipped to false (Default projects onto bool=false).

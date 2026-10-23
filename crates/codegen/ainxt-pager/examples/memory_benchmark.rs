@@ -70,9 +70,13 @@ fn create_arc_info(id: usize) -> SubagentInfoArc {
 }
 
 fn estimate_string_info_size(info: &SubagentInfoString) -> usize {
+    let SubagentInfoString {
+        child_session_id: child_ref,
+        ..
+    } = info;
     std::mem::size_of::<SubagentInfoString>()
         + info.subagent_id.capacity()
-        + info.child_session_id.capacity()
+        + child_ref.capacity()
         + info.description.capacity()
         + info.subagent_type.capacity()
         + info.persona.as_ref().map_or(0, |s| s.capacity())

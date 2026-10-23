@@ -104,7 +104,8 @@ fn chip_submit_without_session_keeps_chips_and_does_not_send() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::SendPrompt { .. })),
-        "an unbound-session submit must emit no SendPrompt, got {effects:?}"
+        "an unbound-session submit must emit no SendPrompt, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents[&id].follow_ups.is_some(),
@@ -741,7 +742,8 @@ fn exit_session_unregisters_active_session() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::UnregisterActiveSession { .. })),
-        "ExitSession must emit UnregisterActiveSession, got: {effects:?}"
+        "ExitSession must emit UnregisterActiveSession, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(matches!(app.active_view, ActiveView::Welcome));
 }
@@ -1093,7 +1095,8 @@ fn chat_mode_new_session_creates_with_chat_kind() {
                 ..
             }
         )),
-        "expected chat CreateSession under --chat, got {effects:?}"
+        "expected chat CreateSession under --chat, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Atomicity: when several startup intents coexist (e.g. CLI
@@ -1413,7 +1416,8 @@ fn auth_complete_retries_stashed_prompt_after_mid_session_login() {
             .iter()
             .any(|e| matches!(e, Effect::SendPrompt { text, .. } if text ==
         "retry me")),
-        "the stashed prompt must be auto-resubmitted, got: {effects:?}"
+        "the stashed prompt must be auto-resubmitted, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 #[test]
@@ -1671,7 +1675,8 @@ fn cycle_mode_plan_exit_under_gate_off_pin_emits_set_session_mode() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::SetSessionMode { .. })),
-        "Plan exit under the pin must still send SetSessionMode(Default), got {effects:?}"
+        "Plan exit under the pin must still send SetSessionMode(Default), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         effects.iter().any(|e| matches!(
@@ -1681,7 +1686,8 @@ fn cycle_mode_plan_exit_under_gate_off_pin_emits_set_session_mode() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(ask) under pin, got {effects:?}"
+        "expected PersistPermissionMode(ask) under pin, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Pre-session cycle (no session id yet) under the pin: Plan → Auto does
@@ -1767,7 +1773,8 @@ fn dispatch_cycle_mode_pre_session_cycles_locally_and_creates_session() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateSession { .. })),
-        "first press must create the session, got {effects:?}"
+        "first press must create the session, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let effects = dispatch(Action::CycleMode, &mut app);
     let agent = &app.agents[&AgentId(0)];
@@ -1779,7 +1786,8 @@ fn dispatch_cycle_mode_pre_session_cycles_locally_and_creates_session() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::CreateSession { .. })),
-        "no duplicate CreateSession, got {effects:?}"
+        "no duplicate CreateSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         effects.iter().any(|e| matches!(
@@ -1790,7 +1798,8 @@ fn dispatch_cycle_mode_pre_session_cycles_locally_and_creates_session() {
                 ..
             }
         )),
-        "pre-session Plan → Auto must persist the displayed mode, got {effects:?}"
+        "pre-session Plan → Auto must persist the displayed mode, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let _ = dispatch(Action::CycleMode, &mut app);
     let agent = &app.agents[&AgentId(0)];
@@ -1839,7 +1848,8 @@ fn set_plan_mode_on_from_off_emits_set_session_mode() {
     assert!(
         matches!(& effects[0], Effect::SetSessionMode { mode_id, .. } if &* mode_id.0 ==
         "plan"),
-        "expected SetSessionMode(plan), got: {effects:?}"
+        "expected SetSessionMode(plan), got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = app.agents.get(&AgentId(0)).unwrap();
     assert_eq!(

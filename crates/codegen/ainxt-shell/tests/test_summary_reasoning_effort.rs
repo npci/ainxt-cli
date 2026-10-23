@@ -40,7 +40,7 @@ fn read_summary(home: &std::path::Path, session_id: &str) -> serde_json::Value {
         }
     }
     panic!(
-        "summary.json for session {session_id} not found under {}",
+        "summary.json for the requested session not found under {}",
         sessions_root.display()
     );
 }

@@ -582,7 +582,11 @@ impl FeedbackClient {
         session_id: &str,
         update: &SessionSignalsUpdate,
     ) -> Result<SessionSignalsUpdateResponse> {
-        let url = format!("{}/sessions/{}/signals", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/signals",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let request = self.post(&url).json(update);
         self.send_json(request, "Signals update").await
     }
@@ -594,7 +598,11 @@ impl FeedbackClient {
         session_id: &str,
         event: &SessionEventRequest,
     ) -> Result<SessionEventResponse> {
-        let url = format!("{}/sessions/{}/events", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/events",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let request = self.post(&url).json(event);
         self.send_json(request, "Event recording").await
     }
@@ -670,7 +678,11 @@ impl FeedbackClient {
         session_id: &str,
         delta: &SessionTurnDelta,
     ) -> Result<SessionTurnDeltaResponse> {
-        let url = format!("{}/sessions/{}/turn-deltas", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/turn-deltas",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let request = self.post(&url).json(delta);
         self.send_json(request, "Sending turn delta").await
     }

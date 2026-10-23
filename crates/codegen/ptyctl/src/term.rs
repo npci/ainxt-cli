@@ -139,6 +139,12 @@ impl Dimensions for TermDimensions {
     }
 }
 
+/// Upper bound on the number of scrollback entries reserved up front by
+/// [`Terminal::scrollback_lines`]. Matches alacritty's default
+/// `scrolling_history` (10,000), which is the history limit this terminal is
+/// created with.
+const MAX_SCROLLBACK_PREALLOC: usize = 10_000;
+
 /// Headless terminal emulator wrapping `alacritty_terminal`.
 pub struct Terminal {
     term: Term<SessionListener>,
@@ -217,7 +223,17 @@ impl Terminal {
         let n = count.min(history);
         let num_cols = grid.columns();
 
-        let mut lines = Vec::with_capacity(n);
+        // `count` arrives from an HTTP query parameter. `n` is already bounded
+        // by the history size, but bound the up-front reservation by a
+        // constant as well so the allocation size never depends on
+        // caller-controlled input. This only limits pre-allocation: all `n`
+        // lines are still returned (the Vec grows if ever needed).
+        let prealloc = if n > MAX_SCROLLBACK_PREALLOC {
+            MAX_SCROLLBACK_PREALLOC
+        } else {
+            n
+        };
+        let mut lines = Vec::with_capacity(prealloc);
         // history lines are at negative indices: Line(-1) is most recent
         for offset in (1..=n).rev() {
             let row = &grid[Line(-(offset as i32))];
@@ -354,5 +370,68 @@ fn resolve_range(range: &Option<Range<usize>>, max: usize) -> (usize, usize) {
             (start, end)
         }
         None => (0, max),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn terminal(cols: u16, rows: u16) -> Terminal {
+        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
+        Terminal::new(cols, rows, SessionListener::new(tx))
+    }
+
+    fn feed_lines(term: &mut Terminal, count: usize) {
+        for i in 0..count {
+            term.feed(format!("line {i}\r\n").as_bytes());
+        }
+    }
+
+    #[test]
+    fn scrollback_lines_returns_requested_tail_in_order() {
+        let mut term = terminal(40, 5);
+        feed_lines(&mut term, 30);
+        let history = term.scrollback_count();
+        assert!(history > 3);
+
+        let lines = term.scrollback_lines(3);
+        assert_eq!(lines.len(), 3);
+        // Oldest first, offsets counting down to 1 (most recent).
+        assert_eq!(
+            lines.iter().map(|l| l.offset).collect::<Vec<_>>(),
+            vec![3, 2, 1]
+        );
+    }
+
+    #[test]
+    fn scrollback_lines_huge_count_returns_full_history() {
+        let mut term = terminal(40, 5);
+        feed_lines(&mut term, 30);
+        let history = term.scrollback_count();
+
+        // A caller-supplied count far beyond the history (or the prealloc
+        // bound) must still return exactly the full history, oldest first.
+        let lines = term.scrollback_lines(usize::MAX);
+        assert_eq!(lines.len(), history);
+        assert_eq!(lines.first().map(|l| l.text.as_str()), Some("line 0"));
+        assert_eq!(lines.last().map(|l| l.offset), Some(1));
+        // Requesting exactly `history` yields the identical result.
+        assert_eq!(texts(&term.scrollback_lines(history)), texts(&lines));
+    }
+
+    #[test]
+    fn scrollback_lines_beyond_prealloc_bound_returns_all() {
+        // History is capped at alacritty's default (10,000). Fill past it and
+        // check every history line is still returned despite the prealloc cap.
+        let mut term = terminal(20, 2);
+        feed_lines(&mut term, MAX_SCROLLBACK_PREALLOC + 500);
+        let history = term.scrollback_count();
+        assert_eq!(history, MAX_SCROLLBACK_PREALLOC);
+        assert_eq!(term.scrollback_lines(usize::MAX).len(), history);
+    }
+
+    fn texts(lines: &[ScrollbackLine]) -> Vec<(usize, String)> {
+        lines.iter().map(|l| (l.offset, l.text.clone())).collect()
     }
 }

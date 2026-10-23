@@ -41,7 +41,7 @@ fn send_while_idle_with_nonempty_shared_queue_routes_to_server() {
             } if text == "c" => Some(prompt_id.clone()),
             _ => None,
         })
-        .unwrap_or_else(|| panic!("expected immediate SendPrompt for 'c', got {effects:?}"));
+        .unwrap_or_else(|| panic!("expected immediate SendPrompt for 'c', got {effects:?}", effects = crate::app::actions::effect_kinds(&effects)));
     // Did NOT start a local turn or adopt "c" as the running prompt.
     assert!(
         !app.agents[&id].session.state.is_turn_running(),
@@ -289,7 +289,7 @@ fn set_coding_data_sharing_allowed_for_admin() {
                 "rollback_to_opted_in must capture pre-toggle opt-in=true",
             );
         }
-        other => panic!("expected SetCodingDataSharing Effect, got {other:?}"),
+        other => panic!("expected SetCodingDataSharing Effect, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     // Optimistic mutation already applied.
     assert!(
@@ -319,7 +319,7 @@ fn set_coding_data_sharing_produces_effect_and_optimistic_mutation() {
                 "rollback_to_opted_in must be pre-toggle value (true == opted-in)",
             );
         }
-        other => panic!("expected SetCodingDataSharing Effect, got {other:?}"),
+        other => panic!("expected SetCodingDataSharing Effect, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     // Optimistic mutation applied.
     assert!(
@@ -837,7 +837,7 @@ fn dispatch_confirm_reset_setting_reset_dispatches_typed_setter_for_shared_bool(
             assert_eq!(*key, "compact_mode");
             assert_eq!(value, &SettingValue::Bool(false));
         }
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     // In-memory state is reset to the default.
     assert!(!app.current_ui.compact_mode);
@@ -883,7 +883,7 @@ fn dispatch_confirm_reset_setting_reset_dispatches_typed_setter_for_shared_enum(
             assert_eq!(*key, "theme");
             assert_eq!(value, &SettingValue::Enum("ainxtnight"));
         }
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert_eq!(app.current_ui.theme.as_deref(), Some("ainxtnight"));
 }
@@ -906,7 +906,8 @@ fn show_usage_with_redirect_url_shows_link_and_skips_fetch() {
     let effects = dispatch(Action::ShowUsage, &mut app);
     assert!(
         effects.is_empty(),
-        "with a redirect URL set, ShowUsage should not fetch (billing or auto-topup), got: {effects:?}"
+        "with a redirect URL set, ShowUsage should not fetch (billing or auto-topup), got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(
         agent_scrollback_len(&app),

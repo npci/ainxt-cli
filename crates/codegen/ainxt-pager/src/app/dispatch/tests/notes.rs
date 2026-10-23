@@ -24,7 +24,8 @@ fn manual_recap_with_no_messages_toasts_empty_state_and_skips_request() {
 
     assert!(
         effects.is_empty(),
-        "empty session must not fire ainxt.dev/recap: {effects:?}"
+        "empty session must not fire ainxt.dev/recap: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = app.agents.get(&id).unwrap();
     assert!(agent.pending_recap_entry.is_none(), "no loading spinner");
@@ -53,7 +54,8 @@ fn manual_recap_with_messages_requests_and_shows_spinner() {
 
     assert!(
         matches!(effects.as_slice(), [Effect::SendRecap { auto: false, .. }]),
-        "expected SendRecap effect, got {effects:?}"
+        "expected SendRecap effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = app.agents.get(&id).unwrap();
     assert!(
@@ -86,7 +88,8 @@ fn manual_recap_during_batch_load_with_prompts_still_requests() {
 
     assert!(
         matches!(effects.as_slice(), [Effect::SendRecap { auto: false, .. }]),
-        "batched resume with user prompts must still fire ainxt.dev/recap: {effects:?}"
+        "batched resume with user prompts must still fire ainxt.dev/recap: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = app.agents.get(&id).unwrap();
     assert!(agent.pending_recap_entry.is_some());
@@ -112,7 +115,8 @@ fn manual_recap_while_loading_replay_still_requests() {
 
     assert!(
         matches!(effects.as_slice(), [Effect::SendRecap { auto: false, .. }]),
-        "loading_replay must not short-circuit to No messages yet: {effects:?}"
+        "loading_replay must not short-circuit to No messages yet: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = app.agents.get(&id).unwrap();
     assert!(agent.pending_recap_entry.is_some());

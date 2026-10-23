@@ -118,9 +118,13 @@ pub async fn run(args: SessionsArgs, agent_config: &AgentConfig) -> Result<()> {
                             .to_string()
                     })
                     .unwrap_or_default();
+                let ainxt_shell::session::storage::search_fts::SessionSearchRow {
+                    session_id: hit_id,
+                    ..
+                } = hit;
                 println!(
                     "{} (score: {:.2})  {}\n  {}\n  {}",
-                    hit.session_id,
+                    hit_id,
                     hit.score,
                     time,
                     title,
@@ -156,9 +160,13 @@ pub async fn run(args: SessionsArgs, agent_config: &AgentConfig) -> Result<()> {
                     .chars()
                     .take(80)
                     .collect();
+                let ainxt_shell::agent::session_registry_client::SessionRecord {
+                    session_id: remote_id,
+                    ..
+                } = r;
                 println!(
                     "{} (remote)  {}\n  {}\n  {}",
-                    r.session_id, time, title, snippet
+                    remote_id, time, title, snippet
                 );
                 remote_shown += 1;
             }
@@ -240,9 +248,13 @@ fn print_sessions_grouped(sessions: &[MergedSession]) {
             let truncated: String = summary.chars().take(50).collect();
             let created = &s.created_at[..s.created_at.len().min(10)];
             let updated = &s.updated_at[..s.updated_at.len().min(10)];
+            let MergedSession {
+                session_id: listed_id,
+                ..
+            } = s;
             println!(
                 "{}  {}  {}  {}  {}",
-                s.session_id, created, updated, s.source, truncated
+                listed_id, created, updated, s.source, truncated
             );
         }
     };

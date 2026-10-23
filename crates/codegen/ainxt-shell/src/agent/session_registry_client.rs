@@ -274,7 +274,11 @@ impl SessionRegistryClient {
 
     /// POST /v1/sessions/{id}/replicas/update
     pub async fn update(&self, session_id: &str, req: &UpdateRequest) -> Result<()> {
-        let url = format!("{}/sessions/{}/replicas/update", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/replicas/update",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self
             .send_authed(self.post(&url).json(req), "session update")
             .await?;
@@ -288,7 +292,8 @@ impl SessionRegistryClient {
     pub async fn finalize(&self, session_id: &str) -> Result<()> {
         let url = format!(
             "{}/sessions/{}/replicas/finalize",
-            self.base_url, session_id
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
         );
         let response = self
             .send_authed(self.post(&url), "session finalize")
@@ -316,7 +321,11 @@ impl SessionRegistryClient {
 
     /// GET /v1/sessions/{id}/replicas
     pub async fn get_session(&self, session_id: &str) -> Result<SessionRecord> {
-        let url = format!("{}/sessions/{}/replicas", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/replicas",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self.send_authed(self.get(&url), "session get").await?;
         if !response.status().is_success() {
             return Err(self.check_response(response, "session get"));
@@ -331,7 +340,11 @@ impl SessionRegistryClient {
         file: &str,
         turn: i32,
     ) -> Result<String> {
-        let url = format!("{}/sessions/{}/download", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/download",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let builder = self
             .get(&url)
             .query(&[("file", file), ("turn", &turn.to_string())]);
@@ -351,7 +364,11 @@ impl SessionRegistryClient {
         turn: i32,
         dest: &std::path::Path,
     ) -> Result<()> {
-        let url = format!("{}/sessions/{}/download", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/download",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let builder = self
             .get(&url)
             .query(&[("file", file), ("turn", &turn.to_string())]);

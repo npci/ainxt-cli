@@ -171,7 +171,8 @@
             effects
                 .iter()
                 .any(|e| matches!(e, Effect::SendBashCommand { .. })),
-            "mid-turn bash must send server-authoritatively; effects = {effects:?}"
+            "mid-turn bash must send server-authoritatively; effects = {effects:?}",
+            effects = crate::app::actions::effect_kinds(&effects),
         );
         let echo_id = app.agents[&AgentId(0)]
             .optimistic_queue_ids
@@ -602,7 +603,7 @@
         let effects = dispatch(Action::SendPrompt("first".into()), &mut app);
         let pid_first = match &effects[0] {
             Effect::SendPrompt { prompt_id, .. } => prompt_id.clone(),
-            other => panic!("expected SendPrompt, got {other:?}"),
+            other => panic!("expected SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
         };
         assert_eq!(
             app.agents[&id].session.current_prompt_id.as_deref(),
@@ -618,7 +619,7 @@
                 assert_eq!(text, "second");
                 prompt_id.clone()
             }
-            other => panic!("expected immediate SendPrompt, got {other:?}"),
+            other => panic!("expected immediate SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
         };
         assert_eq!(app.agents[&id].session.queue_len(), 0);
 
@@ -720,7 +721,7 @@
         let effects = dispatch(Action::SendPrompt("second".into()), &mut app);
         let pid_second = match &effects[0] {
             Effect::SendPrompt { prompt_id, .. } => prompt_id.clone(),
-            other => panic!("expected immediate SendPrompt, got {other:?}"),
+            other => panic!("expected immediate SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
         };
 
         // Leader broadcasts running=p2 before p1's PromptResponse, then p2's echo.

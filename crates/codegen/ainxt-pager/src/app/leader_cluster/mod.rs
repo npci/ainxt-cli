@@ -210,13 +210,11 @@ impl ClusterClient {
                 .any(|a| a.session.session_id.is_some() && !a.session.loading_replay)
         })
         .await;
-        self.latest_agent()
-            .session
-            .session_id
-            .as_ref()
-            .expect("session id set")
-            .0
-            .to_string()
+        let crate::app::agent::AgentSession {
+            session_id: current,
+            ..
+        } = &self.latest_agent().session;
+        current.as_ref().expect("session id set").0.to_string()
     }
 
     /// Attach to an existing session (viewer path) and wait for the replay to

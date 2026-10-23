@@ -957,7 +957,7 @@ mod tests {
         // Must match {sessionId}-{counter} format, NOT a UUID
         assert!(
             id.starts_with("sess-abc-"),
-            "expected id to start with 'sess-abc-', got: {id}"
+            "expected the generated event id to start with 'sess-abc-'"
         );
         let counter_part = id.strip_prefix("sess-abc-").unwrap();
         counter_part
@@ -973,7 +973,7 @@ mod tests {
         let id = resolve_event_id(&notification);
         assert!(
             id.starts_with("sess-xyz-"),
-            "expected id to start with 'sess-xyz-', got: {id}"
+            "expected the generated event id to start with 'sess-xyz-'"
         );
         let counter_part = id.strip_prefix("sess-xyz-").unwrap();
         counter_part

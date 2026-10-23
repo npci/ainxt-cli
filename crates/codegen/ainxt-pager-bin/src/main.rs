@@ -87,32 +87,27 @@ fn resolve_agent_profile_path(path: &std::path::Path) -> std::path::PathBuf {
 }
 /// Print startup information for the serve command.
 ///
-/// The secret itself is never printed to the terminal (which can be
+/// No part of the secret is ever printed to the terminal (which can be
 /// captured by session recorders, terminal multiplexer scrollback, or
-/// screen-sharing); only a short prefix is shown so an operator who already
-/// knows the secret can sanity-check they're looking at the right value.
-fn print_serve_startup_info(bind_addr: SocketAddr, secret: &str) {
-    let masked = mask_secret_for_display(secret);
+/// screen-sharing). Even a short prefix materially reduces the search space
+/// of an auto-generated secret, so only its *source* is reported. The
+/// function deliberately does not take the secret as a parameter so that no
+/// secret-derived data can reach this output: it only receives whether the
+/// user supplied the value (`user_supplied`) and prints a fixed label.
+fn print_serve_startup_info(bind_addr: SocketAddr, user_supplied: bool) {
+    let origin_label = if user_supplied {
+        "provided via --secret / AINXT_AGENT_SECRET (not shown)"
+    } else {
+        "auto-generated (not shown; pass --secret / AINXT_AGENT_SECRET to choose one)"
+    };
     eprintln!();
     eprintln!("   ainxt agent server starting...");
     eprintln!();
     eprintln!("   Address:  {}:{}", bind_addr.ip(), bind_addr.port());
-    eprintln!("   Secret:   {masked} (see --secret / AINXT_AGENT_SECRET to recover the full value)");
+    eprintln!("   Secret:   {origin_label}");
     eprintln!();
     eprintln!("   WebSocket URL: ws://{bind_addr}/ws?server-key=<secret>");
     eprintln!();
-}
-
-/// Render a secret as a short, non-reversible display form: the first 4
-/// characters followed by an ellipsis, or fully masked when too short for a
-/// partial prefix to be safe.
-fn mask_secret_for_display(secret: &str) -> String {
-    if secret.chars().count() <= 4 {
-        "****".to_string()
-    } else {
-        let prefix: String = secret.chars().take(4).collect();
-        format!("{prefix}…")
-    }
 }
 /// Entrypoint tag for `ainxt -p`; keys the quiet stderr default in `init_tracing_simple`.
 const HEADLESS_ENTRYPOINT: &str = "headless";
@@ -1338,9 +1333,9 @@ async fn run_agent_command(
             let secret = a.get_secret();
             let server_config = ainxt_shell::agent::ServerConfig {
                 bind_addr: a.bind,
-                secret: secret.clone(),
+                secret,
             };
-            print_serve_startup_info(a.bind, &secret);
+            print_serve_startup_info(a.bind, a.secret.is_some());
             ainxt_shell::agent::run_agent_server(server_config, agent_config).await
         }
         Some(AgentCmd::Leader(a)) => {

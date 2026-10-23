@@ -121,7 +121,8 @@ fn accept_word_select_tip_flips_setting_and_retires_tip() {
                 ..
             }
         )),
-        "accept must persist the setting, got: {effects:?}"
+        "accept must persist the setting, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // Restore default so sibling tests don't inherit word_select.
     crate::appearance::cache::set_keep_text_selection(TextSelection::Flash);
@@ -162,7 +163,8 @@ fn slash_plan_no_args_not_in_plan_enters_plan_mode() {
     assert_eq!(effects.len(), 1);
     assert!(
         matches!(&effects[0], Effect::SetSessionMode { mode_id, .. } if &*mode_id.0 == "plan"),
-        "expected SetSessionMode(plan), got: {effects:?}"
+        "expected SetSessionMode(plan), got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // Optimistic pending state should be set.
     assert_eq!(app.agents[&id].plan_mode_pending, Some(true));
@@ -177,7 +179,7 @@ fn slash_plan_no_args_already_in_plan_shows_plan() {
     let effects = dispatch(Action::SendPrompt("/plan".into()), &mut app);
 
     // Should NOT emit SetSessionMode — just show the plan (no async effect).
-    assert!(effects.is_empty(), "expected no effects, got: {effects:?}");
+    assert!(effects.is_empty(), "expected no effects, got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
 }
 
 #[test]
@@ -192,14 +194,15 @@ fn slash_plan_with_args_not_in_plan_enters_and_sends_prompt() {
 
     // Should emit a single SetModeThenPrompt (mode switch + prompt
     // bundled into one sequential task to avoid a race).
-    assert_eq!(effects.len(), 1, "expected 1 effect, got: {effects:?}");
+    assert_eq!(effects.len(), 1, "expected 1 effect, got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert!(
         matches!(
             &effects[0],
             Effect::SetModeThenPrompt { mode_id, text, .. }
                 if &*mode_id.0 == "plan" && text == "add auth to the app"
         ),
-        "expected SetModeThenPrompt(plan, \"add auth to the app\"), got: {effects:?}"
+        "expected SetModeThenPrompt(plan, \"add auth to the app\"), got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(app.agents[&id].plan_mode_pending, Some(true));
 }
@@ -220,7 +223,7 @@ fn slash_plan_desc_forwards_skill_token_ranges() {
         &mut app,
     );
 
-    assert_eq!(effects.len(), 1, "expected 1 effect, got: {effects:?}");
+    assert_eq!(effects.len(), 1, "expected 1 effect, got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     match &effects[0] {
         Effect::SetModeThenPrompt {
             mode_id,
@@ -236,7 +239,7 @@ fn slash_plan_desc_forwards_skill_token_ranges() {
                 "offsets recomputed against the stripped desc"
             );
         }
-        other => panic!("expected SetModeThenPrompt, got {other:?}"),
+        other => panic!("expected SetModeThenPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     // The drained echo block carries the same desc-space ranges.
     match &app.agents[&id].scrollback.get(0).unwrap().block {
@@ -258,7 +261,7 @@ fn slash_plan_with_args_already_in_plan_is_noop() {
         &mut app,
     );
 
-    assert!(effects.is_empty(), "expected no effects, got: {effects:?}");
+    assert!(effects.is_empty(), "expected no effects, got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert!(read_toast(&app).contains("/view-plan"));
 }
 
@@ -461,7 +464,7 @@ fn set_yolo_mode_off_to_on_emits_persist_with_rollback() {
                 "session_id must be threaded through for ACP notification gating"
             );
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -558,7 +561,7 @@ fn set_yolo_mode_on_to_off_emits_persist_with_rollback() {
             );
             assert!(session_id.is_some(), "session_id must be threaded");
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 
     // Defense-in-depth — pin that `SettingValue` enum re-import
@@ -1028,7 +1031,7 @@ fn set_yolo_mode_redispatch_same_value_still_emits_effect_and_toast() {
                 "session_id must be threaded through on duplicate dispatch"
             );
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     // Pin all state fields explicitly.
     assert!(
@@ -1092,6 +1095,7 @@ fn set_yolo_mode_on_blocked_by_policy_pin() {
     assert!(
         effects.is_empty(),
         "blocked enable must not emit any Effect (no persist), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !app.agents[&AgentId(0)].session.is_yolo(),
@@ -1152,13 +1156,15 @@ fn cycle_mode_plan_to_auto_includes_persist_auto() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(auto), got {effects:?}"
+        "expected PersistPermissionMode(auto), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         effects
             .iter()
             .any(|e| matches!(e, Effect::SetSessionMode { .. })),
-        "expected plan exit SetSessionMode, got {effects:?}"
+        "expected plan exit SetSessionMode, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1186,7 +1192,8 @@ fn cycle_mode_plan_to_always_approve_when_auto_gated_off() {
                 ..
             }
         )),
-        "gate OFF: expected PersistPermissionMode(always-approve), got {effects:?}"
+        "gate OFF: expected PersistPermissionMode(always-approve), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !effects.iter().any(|e| matches!(
@@ -1225,7 +1232,8 @@ fn cycle_mode_auto_to_always_approve_blocked_by_policy_pin() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(ask) under pin, got {effects:?}"
+        "expected PersistPermissionMode(ask) under pin, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(agent_toast(&app).as_deref(), Some(POLICY_WARNING));
 }
@@ -1276,7 +1284,8 @@ fn cycle_mode_plan_plus_auto_keeps_auto_not_reset() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::SetSessionMode { .. })),
-        "expected plan exit SetSessionMode, got {effects:?}"
+        "expected plan exit SetSessionMode, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         effects.iter().any(|e| matches!(
@@ -1286,7 +1295,8 @@ fn cycle_mode_plan_plus_auto_keeps_auto_not_reset() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(auto), got {effects:?}"
+        "expected PersistPermissionMode(auto), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !effects.iter().any(|e| matches!(
@@ -1296,7 +1306,8 @@ fn cycle_mode_plan_plus_auto_keeps_auto_not_reset() {
                 ..
             }
         )),
-        "Plan+Auto must not persist 'ask' (would mean a reset), got {effects:?}"
+        "Plan+Auto must not persist 'ask' (would mean a reset), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1339,14 +1350,16 @@ fn cycle_mode_pre_session_always_approve_to_normal_persists_ask() {
             }
         )),
         "pre-session Always-Approve → Normal must persist 'ask' \
-         (stale config.toml relaunches yolo), got {effects:?}"
+         (stale config.toml relaunches yolo), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // Welcome-screen Shift+Tab still kicks off session creation.
     assert!(
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateSession { .. })),
-        "expected CreateSession alongside the persist, got {effects:?}"
+        "expected CreateSession alongside the persist, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1365,7 +1378,8 @@ fn cycle_mode_pre_session_normal_to_plan_does_not_persist_permission_mode() {
         !effects
             .iter()
             .any(|e| matches!(e, Effect::PersistPermissionMode { .. })),
-        "Normal → Plan must not touch the persisted permission mode, got {effects:?}"
+        "Normal → Plan must not touch the persisted permission mode, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1393,6 +1407,7 @@ fn set_yolo_mode_no_op_when_no_active_agent() {
     assert!(
         effects.is_empty(),
         "no active agent → no Effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // Defense-in-depth: SHARED state must NOT mutate.
     assert_eq!(app.default_yolo, default_yolo_before);
@@ -1523,7 +1538,7 @@ fn set_permission_mode_default_overrides_canonical_to_default() {
             );
             assert!(session_id.is_some());
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 
     // Toast is the dedicated Default string, NOT
@@ -1587,7 +1602,7 @@ fn set_permission_mode_always_approve_from_default_captures_prev_canonical() {
                      rollback payload, NOT collapsed onto 'ask' by a bool projection",
             );
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 
     // Toast is the destructive ⚠ variant — AlwaysApprove still
@@ -1641,7 +1656,7 @@ fn set_yolo_mode_with_live_yolo_and_default_ui_mirror_rolls_back_to_default() {
                      canonical — matches current_value_for's precedence rule",
             );
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -1695,7 +1710,7 @@ fn dispatch_cycle_mode_normal_to_plan_does_not_touch_yolo() {
     assert!(
         matches!(effects[0], Effect::SetSessionMode { .. }),
         "Normal → Plan effect must be SetSessionMode, got {:?}",
-        effects[0],
+        crate::app::actions::effect_kinds(&effects[0]),
     );
 }
 
@@ -1805,7 +1820,8 @@ fn dispatch_cycle_mode_plan_to_always_approve_delegates_through_inner() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(always-approve, BestEffort), got {effects:?}"
+        "expected PersistPermissionMode(always-approve, BestEffort), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1935,7 +1951,8 @@ fn cycle_always_approve_with_nudge_jumps_to_plan() {
             e,
             Effect::SetSessionMode { mode_id, .. } if &*mode_id.0 == "plan"
         )),
-        "expected SetSessionMode(plan), got {effects:?}"
+        "expected SetSessionMode(plan), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         effects.iter().any(|e| matches!(
@@ -1945,7 +1962,8 @@ fn cycle_always_approve_with_nudge_jumps_to_plan() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(ask), got {effects:?}"
+        "expected PersistPermissionMode(ask), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1991,7 +2009,8 @@ fn cycle_auto_with_nudge_jumps_to_plan() {
             e,
             Effect::SetSessionMode { mode_id, .. } if &*mode_id.0 == "plan"
         )),
-        "expected SetSessionMode(plan), got {effects:?}"
+        "expected SetSessionMode(plan), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         effects.iter().any(|e| matches!(
@@ -2001,7 +2020,8 @@ fn cycle_auto_with_nudge_jumps_to_plan() {
                 ..
             }
         )),
-        "expected PersistPermissionMode(ask), got {effects:?}"
+        "expected PersistPermissionMode(ask), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -2098,7 +2118,7 @@ fn dispatch_cycle_mode_always_approve_to_normal_delegates_off() {
             );
             assert_eq!(*canonical, "ask");
         }
-        other => panic!("expected PersistPermissionMode, got {other:?}"),
+        other => panic!("expected PersistPermissionMode, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -2128,7 +2148,7 @@ fn set_theme_auto_enables_auto_mode_and_persists_auto() {
                     "auto commit persists `auto` (NOT the resolved concrete theme)",
                 );
             }
-            other => panic!("expected PersistSetting, got {other:?}"),
+            other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
         }
         assert_eq!(app.current_ui.theme.as_deref(), Some("auto"));
         assert!(
@@ -2313,7 +2333,8 @@ fn set_plan_mode_idempotency_uses_pending_over_active() {
     );
     assert!(
         matches!(&effects[0], Effect::SetSessionMode { mode_id, .. } if &*mode_id.0 == "default"),
-        "OFF transition must emit SetSessionMode(default): {effects:?}"
+        "OFF transition must emit SetSessionMode(default): {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = app.agents.get(&AgentId(0)).unwrap();
     assert_eq!(
