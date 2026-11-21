@@ -1,5 +1,10 @@
 Fork Attribution — upstream work
 --------------------------------
+AiNxt CLI is a fork of Grok Build (https://github.com/xai-org/grok-build),
+developed by SpaceXAI and licensed under Apache-2.0. The upstream copyright
+notice above is retained. NPCI's copyright applies to its own modifications
+and additions. See NOTICE for attribution and the record of modifications
+required by section 4(b).
 
 AiNxt CLI is a fork of **Grok Build** (`grok`), the terminal-based AI coding
 agent developed and published by SpaceXAI under the Apache License, Version 2.0.
