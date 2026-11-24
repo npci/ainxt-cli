@@ -4652,14 +4652,14 @@ mod tests {
         let json: serde_json::Value =
             serde_json::from_str(&eviction_msg).expect("should be valid JSON");
         assert_eq!(json["method"], "ainxt.dev/internal/evict_sessions");
-        let session_ids = json["params"]["sessionIds"]
+        let evicted = json["params"]["sessionIds"]
             .as_array()
             .expect("sessionIds should be an array");
         assert!(
-            session_ids
+            evicted
                 .iter()
                 .any(|v| v.as_str() == Some("sess-evict-test")),
-            "eviction should include the session we interacted with, got: {session_ids:?}"
+            "eviction should include the session we interacted with, got: {evicted:?}"
         );
         cancel.cancel();
     }

@@ -527,7 +527,15 @@ mod tests {
                 assert_eq!(url, "https://mcp.slack.com/sse");
                 assert!(headers.iter().any(|h| h.name == "Authorization"));
             }
-            other => panic!("expected Http server, got {:?}", other),
+            other => panic!(
+                "expected Http server, got {:?}",
+                match other {
+                    acp::McpServer::Http(_) => "Http",
+                    acp::McpServer::Sse(_) => "Sse",
+                    acp::McpServer::Stdio(_) => "Stdio",
+                    _ => "other",
+                }
+            ),
         }
     }
 
@@ -912,7 +920,15 @@ enabled = false
                     &["/home/user/.ainxt/plugins/team-tool/mcp-echo-server.py"]
                 );
             }
-            other => panic!("expected Stdio server, got {:?}", other),
+            other => panic!(
+                "expected Stdio server, got {:?}",
+                match other {
+                    acp::McpServer::Http(_) => "Http",
+                    acp::McpServer::Sse(_) => "Sse",
+                    acp::McpServer::Stdio(_) => "Stdio",
+                    _ => "other",
+                }
+            ),
         }
     }
 
@@ -962,7 +978,15 @@ enabled = false
                 assert_eq!(name, "sentry");
                 assert_eq!(url, "https://mcp.sentry.dev/mcp");
             }
-            other => panic!("expected Http server, got {:?}", other),
+            other => panic!(
+                "expected Http server, got {:?}",
+                match other {
+                    acp::McpServer::Http(_) => "Http",
+                    acp::McpServer::Sse(_) => "Sse",
+                    acp::McpServer::Stdio(_) => "Stdio",
+                    _ => "other",
+                }
+            ),
         }
     }
 
@@ -1106,7 +1130,15 @@ enabled = false
             acp::McpServer::Http(acp::McpServerHttp { url, .. }) => {
                 assert_eq!(url, "https://file.example/mcp", "file source must win");
             }
-            other => panic!("expected Http server, got {:?}", other),
+            other => panic!(
+                "expected Http server, got {:?}",
+                match other {
+                    acp::McpServer::Http(_) => "Http",
+                    acp::McpServer::Sse(_) => "Sse",
+                    acp::McpServer::Stdio(_) => "Stdio",
+                    _ => "other",
+                }
+            ),
         }
     }
 

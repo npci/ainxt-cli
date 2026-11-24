@@ -120,7 +120,8 @@ fn dispatch_new_session_skips_modal_in_non_git_repo() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateSession { .. })),
-        "non-git path must emit CreateSession, got {effects:?}"
+        "non-git path must emit CreateSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents.values().all(|a| a.question_view.is_none()),

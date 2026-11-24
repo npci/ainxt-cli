@@ -33,11 +33,13 @@ pub(crate) fn extract_pptx_text_from_bytes(bytes: &[u8]) -> Result<String, Strin
         .map_err(|e| format!("Failed to open PPTX archive: {e}"))?;
 
     // Collect slide numbers from `ppt/slides/slideN.xml` entries and sort
-    // numerically so slide ordering matches the presentation.
+    // numerically so slide ordering matches the presentation. An entry whose
+    // name cannot be decoded cannot be one of these ASCII paths, so skip it.
     let mut slide_numbers: Vec<u32> = archive
         .file_names()
         .filter_map(|name| {
-            name.strip_prefix("ppt/slides/slide")?
+            name.ok()?
+                .strip_prefix("ppt/slides/slide")?
                 .strip_suffix(".xml")?
                 .parse()
                 .ok()

@@ -169,7 +169,8 @@ fn follow_up_chip_does_not_execute_slash_command() {
     assert!(
         matches!(& effects[..], [Effect::SendPrompt { text, .. }] if text ==
         "/always-approve"),
-        "chip text must be submitted literally, got {effects:?}"
+        "chip text must be submitted literally, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 #[test]
@@ -178,7 +179,8 @@ fn follow_up_chip_does_not_execute_exit_alias() {
     let effects = dispatch(Action::SubmitFollowUp("quit".into()), &mut app);
     assert!(
         matches!(& effects[..], [Effect::SendPrompt { text, .. }] if text == "quit"),
-        "bare 'quit' chip must be a literal prompt, got {effects:?}"
+        "bare 'quit' chip must be a literal prompt, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 #[test]
@@ -195,7 +197,8 @@ fn chip_submit_while_running_clears_follow_up_chips() {
     assert!(
         matches!(& effects[..], [Effect::SendPrompt { text, .. }] if text ==
         "Summarize"),
-        "chip must immediate-send while running, got {effects:?}"
+        "chip must immediate-send while running, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(app.agents[&id].session.queue_len(), 0);
     assert!(
@@ -215,7 +218,8 @@ fn chip_submit_while_reconnect_pending_keeps_chips_and_does_not_send() {
     let effects = dispatch(Action::SubmitFollowUp("Summarize".into()), &mut app);
     assert!(
         effects.is_empty(),
-        "a reconnect-pending submit must emit no effect, got {effects:?}"
+        "a reconnect-pending submit must emit no effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(app.agents[&id].session.queue_len(), 0);
     assert!(
@@ -228,7 +232,8 @@ fn chip_submit_while_reconnect_pending_keeps_chips_and_does_not_send() {
     assert!(
         matches!(& effects2[..], [Effect::SendPrompt { text, .. }] if text ==
         "Summarize"),
-        "after reconnect clears, the chip must submit, got {effects2:?}"
+        "after reconnect clears, the chip must submit, got {effects2:?}",
+        effects2 = crate::app::actions::effect_kinds(&effects2),
     );
     assert!(
         app.agents[&id].follow_ups.is_none(),
@@ -482,7 +487,8 @@ fn dispatch_send_prompt_announcements_via_registry() {
             .iter()
             .any(|e| matches!(e, Effect::PersistAnnouncementsHidden {
         hidden_ids } if hidden_ids.contains("crit-a"))),
-        "expected persist effect carrying the hidden id, got {effects:?}"
+        "expected persist effect carrying the hidden id, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(app.hidden_announcement_ids.contains("crit-a"));
     assert_eq!(shown_banner_id(&app), None, "hidden critical closes banner");
@@ -490,7 +496,7 @@ fn dispatch_send_prompt_announcements_via_registry() {
     let initial_scrollback_len = app.agents[&agent_id].scrollback.len();
     let initial_queue_len = app.agents[&agent_id].session.queue_len();
     let effects = dispatch(Action::SendPrompt("/announcements foo".into()), &mut app);
-    assert!(effects.is_empty(), "expected no effects, got {effects:?}");
+    assert!(effects.is_empty(), "expected no effects, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert_eq!(app.agents[&agent_id].session.queue_len(), initial_queue_len);
     assert_eq!(
         app.agents[&agent_id].scrollback.len(),
@@ -521,7 +527,7 @@ fn announcements_hide_is_per_id_so_new_critical_reappears() {
     assert_eq!(effects.len(), 1);
     assert_eq!(shown_banner_id(&app), None, "all hidden closes the banner");
     let effects = dispatch(Action::AnnouncementsHide, &mut app);
-    assert!(effects.is_empty(), "expected no effects, got {effects:?}");
+    assert!(effects.is_empty(), "expected no effects, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     app.active_announcements
         .push(critical_announcement("outage-c"));
     assert_eq!(
@@ -546,7 +552,8 @@ fn announcements_show_clears_visible_critical_ids_only() {
             .iter()
             .any(|e| matches!(e, Effect::PersistAnnouncementsHidden {
         hidden_ids } if ! hidden_ids.contains("outage-a"))),
-        "expected persist effect without the un-hidden id, got {effects:?}"
+        "expected persist effect without the un-hidden id, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(shown_banner_id(&app).as_deref(), Some("outage-a"));
     assert!(
@@ -554,10 +561,10 @@ fn announcements_show_clears_visible_critical_ids_only() {
         "ids not currently visible must survive show (prune owns cleanup)"
     );
     let effects = dispatch(Action::AnnouncementsShow, &mut app);
-    assert!(effects.is_empty(), "expected no effects, got {effects:?}");
+    assert!(effects.is_empty(), "expected no effects, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     app.active_announcements.clear();
     let effects = dispatch(Action::AnnouncementsHide, &mut app);
-    assert!(effects.is_empty(), "expected no effects, got {effects:?}");
+    assert!(effects.is_empty(), "expected no effects, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
 }
 /// Hide targets the banner-slot item: the critical while one owns the slot,
 /// then the promo the slot reveals — each per-ID with a persist effect.
@@ -590,7 +597,7 @@ fn announcements_hide_targets_slot_owner_critical_then_promo() {
     assert!(app.hidden_announcement_ids.contains("promo-a"));
     assert_eq!(shown_banner_id(&app), None, "all hidden closes the banner");
     let effects = dispatch(Action::AnnouncementsHide, &mut app);
-    assert!(effects.is_empty(), "expected no effects, got {effects:?}");
+    assert!(effects.is_empty(), "expected no effects, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
 }
 /// `dismissible: false` pins the slot owner: hide is a silent no-op (no key
 /// write, no persist effect, owner stays shown) — and a dismissible item
@@ -605,7 +612,8 @@ fn announcements_hide_noops_for_non_dismissible_owner() {
     let effects = dispatch(Action::AnnouncementsHide, &mut app);
     assert!(
         effects.is_empty(),
-        "non-dismissible hide must not persist, got {effects:?}"
+        "non-dismissible hide must not persist, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.hidden_announcement_ids.is_empty(),
@@ -638,7 +646,8 @@ fn announcements_show_clears_hidden_promo_ids() {
             .iter()
             .any(|e| matches!(e, Effect::PersistAnnouncementsHidden {
         hidden_ids } if ! hidden_ids.contains("promo-a"))),
-        "expected persist effect without the un-hidden promo id, got {effects:?}"
+        "expected persist effect without the un-hidden promo id, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(shown_banner_id(&app).as_deref(), Some("promo-a"));
     assert!(
@@ -787,7 +796,8 @@ fn slash_exit_dispatches_quit() {
     let effects = dispatch(Action::SendPrompt("/exit".into()), &mut app);
     assert!(
         effects.last().is_some_and(|e| matches!(e, Effect::Quit)),
-        "expected Quit as last effect, got: {effects:?}"
+        "expected Quit as last effect, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 #[test]
@@ -807,6 +817,7 @@ fn slash_new_does_not_cancel_running_turn() {
             .iter()
             .any(|e| matches!(e, Effect::CreateSession { .. })),
         "expected CreateSession, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !effects
@@ -923,7 +934,8 @@ fn acp_bootstrap_command_executes_as_passthrough() {
     assert_eq!(effects.len(), 1);
     assert!(
         matches!(& effects[0], Effect::SendPrompt { text, .. } if text == "/flush"),
-        "ACP command should passthrough, got: {effects:?}"
+        "ACP command should passthrough, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 #[test]
@@ -1068,7 +1080,8 @@ fn acp_command_with_args_passthrough_includes_args() {
     assert!(
         matches!(& effects[0], Effect::SendPrompt { text, .. } if text ==
         "/search find bugs"),
-        "ACP passthrough should preserve args, got: {effects:?}"
+        "ACP passthrough should preserve args, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 #[test]
@@ -1271,7 +1284,8 @@ fn chat_mode_refuses_local_build_disk_load() {
     let _ = std::fs::remove_dir_all(&sess_dir);
     assert!(
         effects.is_empty(),
-        "local Build under --chat must refuse, got {effects:?}"
+        "local Build under --chat must refuse, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents.is_empty(),
@@ -1748,7 +1762,7 @@ fn show_tasks_empty_commits_empty_message() {
     let mut app = test_app_with_agent();
     let before = agent_scrollback_len(&app);
     let effects = dispatch(Action::ShowTasks, &mut app);
-    assert!(effects.is_empty(), "got: {effects:?}");
+    assert!(effects.is_empty(), "got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert_eq!(agent_scrollback_len(&app), before + 1);
     assert_eq!(
         last_system_text(&app, AgentId(0)),
@@ -1774,7 +1788,7 @@ fn show_tasks_lists_a_scheduled_task() {
         );
     }
     let effects = dispatch(Action::ShowTasks, &mut app);
-    assert!(effects.is_empty(), "got: {effects:?}");
+    assert!(effects.is_empty(), "got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     let text = last_system_text(&app, AgentId(0));
     assert!(text.contains("Task (1):"), "got: {text:?}");
     assert!(
@@ -2148,7 +2162,7 @@ fn pick_content_session_in_worktree_refuses_conversation_row() {
         },
         &mut app,
     );
-    assert!(effects.is_empty(), "no worktree effects, got {effects:?}");
+    assert!(effects.is_empty(), "no worktree effects, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert!(
         !app.deferred_startup.pending_chat,
         "refusal must not set the one-shot chat bit"
@@ -2170,7 +2184,8 @@ fn delete_session_refuses_conversation_row() {
     );
     assert!(
         effects.is_empty(),
-        "no DeleteSession effect for a conversation row, got {effects:?}"
+        "no DeleteSession effect for a conversation row, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(read_toast(&app).contains("isn't supported"));
 }
@@ -2190,7 +2205,8 @@ fn expand_conversation_card_skips_detail_load() {
     );
     assert!(
         effects.is_empty(),
-        "no LoadCardDetail for a conversation row, got {effects:?}"
+        "no LoadCardDetail for a conversation row, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = get_active_agent(&app).expect("active agent");
     let Some(ActiveModal::SessionPicker { state, .. }) = agent.active_modal.as_ref() else {
@@ -2212,7 +2228,8 @@ fn expand_build_card_still_loads_detail() {
     );
     assert!(
         matches!(&effects[..], [Effect::LoadCardDetail { .. }]),
-        "expected LoadCardDetail, got {effects:?}"
+        "expected LoadCardDetail, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Welcome-screen variants of the conversation-card expand exemption.
@@ -2229,7 +2246,8 @@ fn welcome_expand_conversation_card_skips_detail_load() {
     );
     assert!(
         effects.is_empty(),
-        "no LoadCardDetail for a welcome conversation row, got {effects:?}"
+        "no LoadCardDetail for a welcome conversation row, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.session_picker_state.expanded.contains(&0),
@@ -2246,7 +2264,8 @@ fn welcome_expand_conversation_card_skips_detail_load() {
     );
     assert!(
         matches!(&effects[..], [Effect::LoadCardDetail { .. }]),
-        "expected LoadCardDetail, got {effects:?}"
+        "expected LoadCardDetail, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Collect the active agent's system-block texts.

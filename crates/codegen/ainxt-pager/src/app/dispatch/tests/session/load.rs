@@ -18,7 +18,8 @@ fn follow_up_chip_bypasses_project_picker() {
     assert!(
         matches!(& effects[..], [Effect::SendPrompt { text, .. }] if text ==
         "Summarize this"),
-        "chip text must be sent literally, not swallowed, got {effects:?}"
+        "chip text must be sent literally, not swallowed, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Opening the cancel-turn picker while scrollback is focused must
@@ -631,7 +632,8 @@ fn resume_known_session_id_loads_not_creates() {
             .iter()
             .any(|e| matches!(e, Effect::LoadSession { session_id, .. } if
         session_id == "resume-known-id")),
-        "expected LoadSession, got {effects:?}"
+        "expected LoadSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !effects
@@ -660,7 +662,8 @@ fn session_restored_refuses_local_build_under_chat_mode() {
     let _ = std::fs::remove_dir_all(&sess_dir);
     assert!(
         effects.is_empty(),
-        "SessionRestored must refuse Build under --chat, got {effects:?}"
+        "SessionRestored must refuse Build under --chat, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !app.agents.contains_key(&id),
@@ -1155,7 +1158,8 @@ fn resume_after_load_failed_reissues_load() {
             .iter()
             .any(|e| matches!(e, Effect::LoadSession { agent_id, session_id,
         .. } if * agent_id != agent_0 && session_id == "fail-then-retry")),
-        "retry after failure must emit LoadSession for a new agent, got {effects:?}"
+        "retry after failure must emit LoadSession for a new agent, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(app.agents.len(), count_before + 1);
 }
@@ -1452,7 +1456,8 @@ fn pick_conversation_row_dispatches_direct_chat_load() {
     assert!(
         matches!(& effects[..], [Effect::LoadSession { session_id, session_cwd : None,
         chat_kind : true, .. }] if session_id == "conv-pick-1"),
-        "expected a direct chat LoadSession, got {effects:?}"
+        "expected a direct chat LoadSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Welcome-screen variant of the conversation-row pick.
@@ -1464,7 +1469,8 @@ fn pick_conversation_row_from_welcome_dispatches_direct_chat_load() {
     assert!(
         matches!(& effects[..], [Effect::LoadSession { session_id, session_cwd : None,
         chat_kind : true, .. }] if session_id == "conv-pick-2"),
-        "expected a direct chat LoadSession, got {effects:?}"
+        "expected a direct chat LoadSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Canary: a remote Build row not on disk still takes the GCS-restore path.
@@ -1479,7 +1485,8 @@ fn pick_remote_build_row_still_restores() {
     assert!(
         matches!(& effects[..], [Effect::RestoreAndLoadSession { session_id, .. }] if *
         session_id == id),
-        "expected RestoreAndLoadSession, got {effects:?}"
+        "expected RestoreAndLoadSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// A content-search hit matching a co-displayed conversation row also
@@ -1498,7 +1505,8 @@ fn pick_content_session_conversation_row_dispatches_direct_chat_load() {
     assert!(
         matches!(& effects[..], [Effect::LoadSession { session_id, session_cwd : None,
         chat_kind : true, .. }] if session_id == "conv-hit-1"),
-        "expected a direct chat LoadSession, got {effects:?}"
+        "expected a direct chat LoadSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Worktree resume is refused for conversation rows (no cwd to check out);
@@ -1508,7 +1516,7 @@ fn pick_session_in_worktree_refuses_conversation_row() {
     let mut app = test_app_with_agent();
     open_session_picker_with(&mut app, vec![make_conversation_entry("conv-wt-1")]);
     let effects = dispatch(Action::PickSessionInWorktree(0), &mut app);
-    assert!(effects.is_empty(), "no worktree effects, got {effects:?}");
+    assert!(effects.is_empty(), "no worktree effects, got {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert!(
         !app.deferred_startup.pending_chat,
         "refusal must not set the one-shot chat bit"
@@ -1527,7 +1535,8 @@ fn chat_mode_query_change_schedules_debounced_search() {
     assert!(
         matches!(& effects[..], [Effect::DebounceSessionSearch { query, seq : 1 }] if
         query == "abc"),
-        "chat-mode query change must arm the search debounce, got {effects:?}"
+        "chat-mode query change must arm the search debounce, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(app.session_picker_list_seq, 1, "trigger must bump the seq");
     assert!(
@@ -1538,7 +1547,8 @@ fn chat_mode_query_change_schedules_debounced_search() {
     let effects = dispatch(Action::ForceDeepSearch, &mut app);
     assert!(
         matches!(&effects[..], [Effect::DeepSearchSessions { .. }]),
-        "Build-mode deep search unchanged, got {effects:?}"
+        "Build-mode deep search unchanged, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(
         app.session_picker_list_seq, 1,
@@ -1563,7 +1573,8 @@ fn chat_mode_debounce_expiry_fetches_current_and_drops_stale() {
     assert!(
         matches!(& effects[..], [Effect::FetchSessionList { query : Some(q), seq : 1 }]
         if q == "abc"),
-        "current debounce expiry must fetch with the query, got {effects:?}"
+        "current debounce expiry must fetch with the query, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     app.session_picker_state.query = "abcd".into();
     let _ = dispatch(Action::TriggerDeepSearch, &mut app);
@@ -1576,7 +1587,8 @@ fn chat_mode_debounce_expiry_fetches_current_and_drops_stale() {
     );
     assert!(
         effects.is_empty(),
-        "stale debounce expiry must not fetch, got {effects:?}"
+        "stale debounce expiry must not fetch, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Build mode: any 2+ char query arms the deep-search debounce — abundant
@@ -1596,7 +1608,8 @@ fn build_mode_query_arms_debounce_despite_title_hits_and_force_skips_it() {
     assert!(
         matches!(& effects[..], [Effect::DebounceSessionSearch { query, seq : 1 }] if
         query == "prost"),
-        "unforced query must arm the debounce even with 3+ title hits, got {effects:?}"
+        "unforced query must arm the debounce even with 3+ title hits, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.session_picker_content_loading,
@@ -1610,7 +1623,8 @@ fn build_mode_query_arms_debounce_despite_title_hits_and_force_skips_it() {
     assert!(
         matches!(& effects[..], [Effect::DeepSearchSessions { query, seq : 2 }] if query
         == "prost"),
-        "forced search must skip the debounce, got {effects:?}"
+        "forced search must skip the debounce, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Build mode: a sub-2-char query clears the content results AND
@@ -1626,7 +1640,8 @@ fn build_mode_short_query_clears_results_and_invalidates_armed_debounce() {
     let effects = dispatch(Action::TriggerDeepSearch, &mut app);
     assert!(
         effects.is_empty(),
-        "short query emits nothing, got {effects:?}"
+        "short query emits nothing, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(app.session_picker_content_results.is_none());
     assert!(!app.session_picker_content_loading);
@@ -1639,7 +1654,8 @@ fn build_mode_short_query_clears_results_and_invalidates_armed_debounce() {
     );
     assert!(
         effects.is_empty(),
-        "expiry armed before the clear must not search, got {effects:?}"
+        "expiry armed before the clear must not search, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Build mode: a current-seq debounce expiry dispatches the deep search; one
@@ -1659,7 +1675,8 @@ fn build_mode_debounce_expiry_searches_current_and_drops_stale() {
     assert!(
         matches!(& effects[..], [Effect::DeepSearchSessions { query, seq : 1 }] if query
         == "abc"),
-        "current expiry must dispatch the deep search, got {effects:?}"
+        "current expiry must dispatch the deep search, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     app.session_picker_state.query = "abcd".into();
     let _ = dispatch(Action::TriggerDeepSearch, &mut app);
@@ -1672,7 +1689,8 @@ fn build_mode_debounce_expiry_searches_current_and_drops_stale() {
     );
     assert!(
         effects.is_empty(),
-        "stale expiry must be dropped, got {effects:?}"
+        "stale expiry must be dropped, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Modal `/resume` surface: the debounce expiry validates against the
@@ -1692,7 +1710,8 @@ fn build_mode_modal_debounce_expiry_validates_modal_seq() {
     let effects = dispatch(Action::TriggerDeepSearch, &mut app);
     assert!(
         matches!(&effects[..], [Effect::DebounceSessionSearch { seq: 1, .. }]),
-        "modal query must arm the debounce, got {effects:?}"
+        "modal query must arm the debounce, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let effects = dispatch(
         Action::TaskComplete(TaskResult::SessionSearchDebounceExpired {
@@ -1704,7 +1723,8 @@ fn build_mode_modal_debounce_expiry_validates_modal_seq() {
     assert!(
         matches!(& effects[..], [Effect::DeepSearchSessions { query, seq : 1 }] if query
         == "abc"),
-        "expiry must validate against the modal seq, got {effects:?}"
+        "expiry must validate against the modal seq, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Dismissing the welcome picker invalidates an armed deep-search debounce:
@@ -1730,7 +1750,8 @@ fn build_mode_picker_close_invalidates_armed_debounce() {
     );
     assert!(
         effects.is_empty(),
-        "expiry armed before the close must not search, got {effects:?}"
+        "expiry armed before the close must not search, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Modal-armed debounce + modal close: the dismissal bump lands on the
@@ -1770,7 +1791,8 @@ fn build_mode_modal_close_drops_armed_debounce_despite_seq_collision() {
     );
     assert!(
         effects.is_empty(),
-        "modal-armed expiry must not search after the modal closed, got {effects:?}"
+        "modal-armed expiry must not search after the modal closed, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Ctrl+/ (forced search) skips the debounce; clearing the query
@@ -1785,7 +1807,8 @@ fn chat_mode_force_search_fetches_immediately_and_empty_query_unfilters() {
     assert!(
         matches!(& effects[..], [Effect::FetchSessionList { query : Some(q), seq : 1 }]
         if q == "abc"),
-        "forced search must fetch without debouncing, got {effects:?}"
+        "forced search must fetch without debouncing, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.session_picker_content_loading,
@@ -1801,7 +1824,8 @@ fn chat_mode_force_search_fetches_immediately_and_empty_query_unfilters() {
                 seq: 2
             }]
         ),
-        "cleared query must refetch the unfiltered list immediately (no debounce), got {effects:?}"
+        "cleared query must refetch the unfiltered list immediately (no debounce), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !app.session_picker_content_loading,
@@ -1828,7 +1852,8 @@ fn chat_mode_search_reads_modal_query_first() {
     assert!(
         matches!(& effects[..], [Effect::FetchSessionList { query : Some(q), .. }] if q
         == "modal-query"),
-        "modal query must win over the welcome picker's, got {effects:?}"
+        "modal query must win over the welcome picker's, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Out-of-order list completions: only the response for the current seq
@@ -2002,7 +2027,8 @@ fn modal_close_drops_in_flight_search_response() {
     let effects = dispatch(Action::SessionPickerClosed, &mut app);
     assert!(
         effects.is_empty(),
-        "close is a pure invalidation, got {effects:?}"
+        "close is a pure invalidation, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let _ = dispatch(
         Action::TaskComplete(TaskResult::SessionListLoaded {
@@ -2044,7 +2070,8 @@ fn modal_pick_drops_in_flight_search_response() {
     let effects = dispatch(Action::PickSession(0), &mut app);
     assert!(
         matches!(&effects[..], [Effect::LoadSession { .. }]),
-        "pick must still load the session, got {effects:?}"
+        "pick must still load the session, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.session_picker_list_seq > seq,
@@ -2316,7 +2343,8 @@ fn modal_failed_search_clears_indicator_and_plain_failure_preserves_spinner() {
     let effects = dispatch(Action::ForceDeepSearch, &mut app);
     assert!(
         matches!(&effects[..], [Effect::DeepSearchSessions { .. }]),
-        "Build-mode modal deep search armed, got {effects:?}"
+        "Build-mode modal deep search armed, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let _ = dispatch(
         Action::TaskComplete(TaskResult::SessionListFailed {
@@ -2349,7 +2377,8 @@ fn build_mode_list_response_preserves_deep_search_spinner() {
     let effects = dispatch(Action::ForceDeepSearch, &mut app);
     assert!(
         matches!(&effects[..], [Effect::DeepSearchSessions { .. }]),
-        "Build-mode deep search armed, got {effects:?}"
+        "Build-mode deep search armed, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(app.session_picker_content_loading, "deep search in flight");
     let _ = dispatch(
@@ -2398,7 +2427,8 @@ fn build_mode_rapid_plain_fetches_keep_last_write_wins() {
                     seq: 0
                 }]
             ),
-            "Build-mode plain fetch must not bump the seq, got {effects:?}"
+            "Build-mode plain fetch must not bump the seq, got {effects:?}",
+            effects = crate::app::actions::effect_kinds(&effects),
         );
     }
     assert_eq!(
@@ -2455,6 +2485,7 @@ fn plain_picker_fetch_carries_no_query_and_bumps_seq() {
                 seq: 2
             }]
         ),
-        "picker fetch must be unfiltered and supersede the search, got {effects:?}"
+        "picker fetch must be unfiltered and supersede the search, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }

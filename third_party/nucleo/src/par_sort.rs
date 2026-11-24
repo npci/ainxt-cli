@@ -283,19 +283,26 @@ where
     // 4. `offsets - Indices of out-of-order elements within the block.
 
     // The current block on the left side (from `l` to `l.add(block_l)`).
+    //
+    // `start_*`/`end_*` start out pointing at the beginning of their (still
+    // empty) `offsets_*` buffer instead of null. Only `start == end` ("no
+    // offsets collected yet") matters before the first trace, and the trace
+    // below resets both to this same address on the first iteration, so the
+    // behaviour is identical to the upstream null initialisation -- but the
+    // pointers are never null, even transiently.
     let mut l = v.as_mut_ptr();
     let mut block_l = BLOCK;
-    let mut start_l = ptr::null_mut();
-    let mut end_l = ptr::null_mut();
     let mut offsets_l = [MaybeUninit::<u8>::uninit(); BLOCK];
+    let mut start_l = offsets_l.as_mut_ptr() as *mut u8;
+    let mut end_l = start_l;
 
     // The current block on the right side (from `r.sub(block_r)` to `r`).
     // SAFETY: The documentation for .add() specifically mention that `vec.as_ptr().add(vec.len())` is always safe`
     let mut r = unsafe { l.add(v.len()) };
     let mut block_r = BLOCK;
-    let mut start_r = ptr::null_mut();
-    let mut end_r = ptr::null_mut();
     let mut offsets_r = [MaybeUninit::<u8>::uninit(); BLOCK];
+    let mut start_r = offsets_r.as_mut_ptr() as *mut u8;
+    let mut end_r = start_r;
 
     // FIXME: When we get VLAs, try creating one array of length `min(v.len(), 2 * BLOCK)` rather
     // than two fixed-size arrays of length `BLOCK`. VLAs might be more cache-efficient.
@@ -892,4 +899,51 @@ where
     let limit = usize::BITS - v.len().leading_zeros();
 
     recurse(v, &is_less, None, limit, canceled)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::par_quicksort;
+    use std::sync::atomic::AtomicBool;
+
+    /// Deterministic xorshift so the test needs no extra dependencies.
+    fn pseudo_random(len: usize, mut seed: u64) -> Vec<u64> {
+        (0..len)
+            .map(|_| {
+                seed ^= seed << 13;
+                seed ^= seed >> 7;
+                seed ^= seed << 17;
+                seed
+            })
+            .collect()
+    }
+
+    fn check(mut v: Vec<u64>) {
+        let mut expected = v.clone();
+        expected.sort_unstable();
+        let canceled = AtomicBool::new(false);
+        assert!(!par_quicksort(&mut v, |a, b| a < b, &canceled));
+        assert_eq!(v, expected);
+    }
+
+    /// Exercises the block partition (`partition_in_blocks`), which only runs
+    /// for slices longer than the insertion-sort threshold and needs more than
+    /// `2 * BLOCK` elements to take the block-by-block path.
+    #[test]
+    fn par_quicksort_matches_std_sort() {
+        for len in [0, 1, 2, 20, 255, 256, 257, 1_000, 10_000, 100_000] {
+            check(pseudo_random(len, 0x9E37_79B9_7F4A_7C15 ^ len as u64));
+            check((0..len as u64).collect());
+            check((0..len as u64).rev().collect());
+            check(vec![7; len]);
+            check((0..len as u64).map(|i| i % 17).collect());
+        }
+    }
+
+    #[test]
+    fn par_quicksort_reports_cancellation() {
+        let mut v = pseudo_random(10_000, 42);
+        let canceled = AtomicBool::new(true);
+        assert!(par_quicksort(&mut v, |a, b| a < b, &canceled));
+    }
 }

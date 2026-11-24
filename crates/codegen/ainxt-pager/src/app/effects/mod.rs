@@ -1957,7 +1957,8 @@ pub(crate) fn execute(
             debug_assert!(
                 config_key == "fork_worktree_mode" || config_key ==
                 "new_session_worktree_mode",
-                "unexpected worktree config_key: {config_key}"
+                "unexpected worktree config_key (expected fork_worktree_mode or \
+                 new_session_worktree_mode)"
             );
             persist_hint(tasks, config_key, mode.as_config_str(), "worktree mode");
         }

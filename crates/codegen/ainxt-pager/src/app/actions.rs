@@ -2961,3 +2961,193 @@ mod tests {
         );
     }
 }
+
+/// Test-only view of effects for assertion / panic messages: each `Effect`
+/// is reduced to its variant name, never its payload. Payloads can carry
+/// session ids, account and billing data, so failing tests report *which*
+/// effects were emitted (e.g. `["PersistSetting", "SwitchModel"]`)
+/// without writing their contents to the test log.
+#[cfg(test)]
+pub(crate) trait EffectKinds {
+    type Kinds: std::fmt::Debug;
+    fn effect_kinds(&self) -> Self::Kinds;
+}
+
+#[cfg(test)]
+impl EffectKinds for Effect {
+    type Kinds = &'static str;
+    fn effect_kinds(&self) -> &'static str {
+        match self {
+            Effect::CreateSession { .. } => "CreateSession",
+            Effect::SetWorkingDir { .. } => "SetWorkingDir",
+            Effect::CreateWorktreeSession { .. } => "CreateWorktreeSession",
+            Effect::LoadSession { .. } => "LoadSession",
+            Effect::ScanForeignSessions { .. } => "ScanForeignSessions",
+            Effect::CanonicalizeForeignResumeCwd { .. } => "CanonicalizeForeignResumeCwd",
+            Effect::DetectForeignResumeHint { .. } => "DetectForeignResumeHint",
+            Effect::FetchSessionList { .. } => "FetchSessionList",
+            Effect::DebounceSessionSearch { .. } => "DebounceSessionSearch",
+            Effect::FetchRoster { .. } => "FetchRoster",
+            Effect::FetchDashboardSessions { .. } => "FetchDashboardSessions",
+            Effect::LoadCardDetail { .. } => "LoadCardDetail",
+            Effect::RestoreAndLoadSession { .. } => "RestoreAndLoadSession",
+            Effect::SendPrompt { .. } => "SendPrompt",
+            Effect::SendBashCommand { .. } => "SendBashCommand",
+            Effect::CancelTurn { .. } => "CancelTurn",
+            Effect::Compact { .. } => "Compact",
+            Effect::KillBgTask { .. } => "KillBgTask",
+            Effect::KillSubagent { .. } => "KillSubagent",
+            Effect::DeleteScheduledTask { .. } => "DeleteScheduledTask",
+            Effect::DemoteToBackground { .. } => "DemoteToBackground",
+            Effect::SwitchModel { .. } => "SwitchModel",
+            Effect::FetchChangelog { .. } => "FetchChangelog",
+            Effect::PersistAnnouncementsHidden { .. } => "PersistAnnouncementsHidden",
+            Effect::PersistMemoryFullscreen { .. } => "PersistMemoryFullscreen",
+            Effect::PersistProjectPickerDisabled { .. } => "PersistProjectPickerDisabled",
+            Effect::PersistDashboard { .. } => "PersistDashboard",
+            Effect::PersistWorktreeMode { .. } => "PersistWorktreeMode",
+            Effect::PersistPreferredModel { .. } => "PersistPreferredModel",
+            Effect::PersistPermissionMode { .. } => "PersistPermissionMode",
+            Effect::PersistSetting { .. } => "PersistSetting",
+            Effect::SaveModelOverride { .. } => "SaveModelOverride",
+            Effect::DeleteModelOverride { .. } => "DeleteModelOverride",
+            Effect::SendPromptBlocks { .. } => "SendPromptBlocks",
+            Effect::SendPromptNow { .. } => "SendPromptNow",
+            Effect::TogglePlanMode { .. } => "TogglePlanMode",
+            Effect::QueueRemove { .. } => "QueueRemove",
+            Effect::QueueReorder { .. } => "QueueReorder",
+            Effect::QueueClear { .. } => "QueueClear",
+            Effect::QueueEdit { .. } => "QueueEdit",
+            Effect::QueueInterject { .. } => "QueueInterject",
+            Effect::SetSessionMode { .. } => "SetSessionMode",
+            Effect::SetModeThenPrompt { .. } => "SetModeThenPrompt",
+            Effect::FetchPromptHistory { .. } => "FetchPromptHistory",
+            Effect::FetchSessionAgentName { .. } => "FetchSessionAgentName",
+            Effect::Authenticate { .. } => "Authenticate",
+            Effect::PollAuthUrl { .. } => "PollAuthUrl",
+            Effect::SubmitAuthCode { .. } => "SubmitAuthCode",
+            Effect::FetchMcpsList { .. } => "FetchMcpsList",
+            Effect::McpAuthTrigger { .. } => "McpAuthTrigger",
+            Effect::FetchHooksList { .. } => "FetchHooksList",
+            Effect::FetchPluginsList { .. } => "FetchPluginsList",
+            Effect::HooksAction { .. } => "HooksAction",
+            Effect::PluginsAction { .. } => "PluginsAction",
+            Effect::FetchMarketplaceList { .. } => "FetchMarketplaceList",
+            Effect::CheckMarketplaceUpdates { .. } => "CheckMarketplaceUpdates",
+            Effect::FetchPluginCtaCatalog { .. } => "FetchPluginCtaCatalog",
+            Effect::FetchSkillsList { .. } => "FetchSkillsList",
+            Effect::ToggleSkill { .. } => "ToggleSkill",
+            Effect::MarketplaceAction { .. } => "MarketplaceAction",
+            Effect::InstallPluginFromCta { .. } => "InstallPluginFromCta",
+            Effect::ReloadPluginsForCta { .. } => "ReloadPluginsForCta",
+            Effect::FetchPluginCtaMcps { .. } => "FetchPluginCtaMcps",
+            Effect::RetryPluginCtaMcps { .. } => "RetryPluginCtaMcps",
+            Effect::DismissCtaInstalled { .. } => "DismissCtaInstalled",
+            Effect::UpsertMcpServer { .. } => "UpsertMcpServer",
+            Effect::DeleteMcpServer { .. } => "DeleteMcpServer",
+            Effect::ToggleMcpServer { .. } => "ToggleMcpServer",
+            Effect::ToggleMcpTool { .. } => "ToggleMcpTool",
+            Effect::ShareSession { .. } => "ShareSession",
+            Effect::ShowSessionInfo { .. } => "ShowSessionInfo",
+            Effect::ShowContextInfo { .. } => "ShowContextInfo",
+            Effect::ShowSessionUsage { .. } => "ShowSessionUsage",
+            Effect::FetchBundleStatus { .. } => "FetchBundleStatus",
+            Effect::FetchCatalogEntry { .. } => "FetchCatalogEntry",
+            Effect::SendFeedback { .. } => "SendFeedback",
+            Effect::SaveMemoryNote { .. } => "SaveMemoryNote",
+            Effect::RewriteMemoryNote { .. } => "RewriteMemoryNote",
+            Effect::RefreshAvailableCommands { .. } => "RefreshAvailableCommands",
+            Effect::SendBtw { .. } => "SendBtw",
+            Effect::GitStatus { .. } => "GitStatus",
+            Effect::GitDiff { .. } => "GitDiff",
+            Effect::GitStage { .. } => "GitStage",
+            Effect::GitUnstage { .. } => "GitUnstage",
+            Effect::GitCommit { .. } => "GitCommit",
+            Effect::SuggestCommitMessage { .. } => "SuggestCommitMessage",
+            Effect::SendRecap { .. } => "SendRecap",
+            Effect::SendInterject { .. } => "SendInterject",
+            Effect::Logout { .. } => "Logout",
+            Effect::CheckSubscription { .. } => "CheckSubscription",
+            Effect::CreditLimitRecheck { .. } => "CreditLimitRecheck",
+            Effect::SchedulePaywallCheck { .. } => "SchedulePaywallCheck",
+            Effect::ScheduleGateVerifyTimeout { .. } => "ScheduleGateVerifyTimeout",
+            Effect::SwitchAccount { .. } => "SwitchAccount",
+            Effect::ScheduleClearAuthCopied { .. } => "ScheduleClearAuthCopied",
+            Effect::RegisterActiveSession { .. } => "RegisterActiveSession",
+            Effect::UnregisterActiveSession { .. } => "UnregisterActiveSession",
+            Effect::Quit { .. } => "Quit",
+            Effect::SetCodingDataSharing { .. } => "SetCodingDataSharing",
+            Effect::RenameSession { .. } => "RenameSession",
+            Effect::DeleteSession { .. } => "DeleteSession",
+            Effect::DeepSearchSessions { .. } => "DeepSearchSessions",
+            Effect::ForkSession { .. } => "ForkSession",
+            Effect::HydrateSessionTitleFromDisk { .. } => "HydrateSessionTitleFromDisk",
+            Effect::FetchRewindPoints { .. } => "FetchRewindPoints",
+            Effect::RewindPreview { .. } => "RewindPreview",
+            Effect::RewindExecute { .. } => "RewindExecute",
+            Effect::FetchBilling { .. } => "FetchBilling",
+            Effect::FetchAppBilling { .. } => "FetchAppBilling",
+            Effect::RefreshGate { .. } => "RefreshGate",
+            Effect::DebounceSuggestions { .. } => "DebounceSuggestions",
+            Effect::DebouncePluginCta { .. } => "DebouncePluginCta",
+            Effect::FetchShellSuggestions { .. } => "FetchShellSuggestions",
+            Effect::FetchPromptSuggestion { .. } => "FetchPromptSuggestion",
+            Effect::ProbeClipboardAttachment { .. } => "ProbeClipboardAttachment",
+            Effect::PreparePromptImagePreview { .. } => "PreparePromptImagePreview",
+        }
+    }
+}
+
+#[cfg(test)]
+impl EffectKinds for [Effect] {
+    type Kinds = Vec<&'static str>;
+    fn effect_kinds(&self) -> Vec<&'static str> {
+        let mut kinds = Vec::new();
+        for effect in self {
+            kinds.push(effect.effect_kinds());
+        }
+        kinds
+    }
+}
+
+#[cfg(test)]
+impl EffectKinds for Vec<Effect> {
+    type Kinds = Vec<&'static str>;
+    fn effect_kinds(&self) -> Vec<&'static str> {
+        self.as_slice().effect_kinds()
+    }
+}
+
+#[cfg(test)]
+impl<T: EffectKinds> EffectKinds for Option<T> {
+    type Kinds = Option<T::Kinds>;
+    fn effect_kinds(&self) -> Self::Kinds {
+        match self {
+            Some(inner) => Some(inner.effect_kinds()),
+            None => None,
+        }
+    }
+}
+
+#[cfg(test)]
+impl<T: EffectKinds + ?Sized> EffectKinds for &T {
+    type Kinds = T::Kinds;
+    fn effect_kinds(&self) -> T::Kinds {
+        (**self).effect_kinds()
+    }
+}
+
+#[cfg(test)]
+impl<T: EffectKinds + ?Sized> EffectKinds for &mut T {
+    type Kinds = T::Kinds;
+    fn effect_kinds(&self) -> T::Kinds {
+        (**self).effect_kinds()
+    }
+}
+
+/// Variant name(s) of an `Effect`, a slice / `Vec` of them, or an `Option`
+/// of either. See [`EffectKinds`].
+#[cfg(test)]
+pub(crate) fn effect_kinds<T: EffectKinds + ?Sized>(value: &T) -> T::Kinds {
+    value.effect_kinds()
+}

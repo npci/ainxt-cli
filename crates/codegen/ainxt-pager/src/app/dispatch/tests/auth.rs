@@ -211,7 +211,7 @@ fn bash_while_running_is_server_authoritative() {
             assert_eq!(command, "ls -la");
             prompt_id.clone()
         }
-        other => panic!("expected immediate SendBashCommand, got {other:?}"),
+        other => panic!("expected immediate SendBashCommand, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     };
     // Not in the local queue.
     assert_eq!(app.agents[&id].session.queue_len(), 0);

@@ -517,10 +517,11 @@ fn show_usage_returns_fetch_billing_effect() {
     let effects = dispatch(Action::ShowUsage, &mut app);
     // One non-silent FetchBilling — the effect pulls billing + auto-topup
     // together and renders a single summary.
-    assert_eq!(effects.len(), 1, "got: {effects:?}");
+    assert_eq!(effects.len(), 1, "got: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     assert!(
         matches!(&effects[0], Effect::FetchBilling { agent_id, silent } if *agent_id == AgentId(0) && !*silent),
-        "effect should be a non-silent FetchBilling, got: {effects:?}"
+        "effect should be a non-silent FetchBilling, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -890,7 +891,8 @@ fn free_usage_failure_opens_paywall_modal() {
     let effects = dispatch(Action::SendPrompt("draw me a cat".into()), &mut app);
     assert!(
         matches!(&effects[0], Effect::SendPrompt { text, .. } if text == "draw me a cat"),
-        "send must dispatch: {effects:?}"
+        "send must dispatch: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let prompt_id = app.agents[&id].session.current_prompt_id.clone();
     assert!(prompt_id.is_some(), "send must mint a prompt id");
@@ -980,7 +982,8 @@ fn restricted_command_submit_opens_two_option_upsell() {
 
     assert!(
         effects.is_empty(),
-        "restricted command must not produce a SendPrompt: {effects:?}"
+        "restricted command must not produce a SendPrompt: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = &app.agents[&id];
     assert!(
@@ -1045,7 +1048,7 @@ fn restricted_command_with_open_modal_keeps_composer_text() {
 
     let effects = dispatch(Action::SendPrompt("/image a sunset".into()), &mut app);
 
-    assert!(effects.is_empty(), "no passthrough / send: {effects:?}");
+    assert!(effects.is_empty(), "no passthrough / send: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     let agent = &app.agents[&id];
     assert_eq!(
         agent.prompt.text(),
@@ -1084,7 +1087,8 @@ fn unknown_non_restricted_command_still_passes_through() {
     assert_eq!(effects.len(), 1);
     assert!(
         matches!(&effects[0], Effect::SendPrompt { text, .. } if text == "/frobnicate arg"),
-        "unknown command must still pass through: {effects:?}"
+        "unknown command must still pass through: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents[&id].question_view.is_none(),

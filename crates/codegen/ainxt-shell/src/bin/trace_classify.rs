@@ -100,7 +100,13 @@ async fn main() -> anyhow::Result<()> {
         ainxt_home: cli.ainxt_home,
     };
     let summary = run(args).await?;
-    eprintln!("{}", summary.render());
+    // `Summary` is only turn counters. Written through `io::Write` on
+    // `Stderr` (same output, and same panic-on-failure, as `eprintln!`).
+    let rendered = summary.render();
+    if let Err(e) = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("{rendered}\n"))
+    {
+        panic!("failed printing to stderr: {e}");
+    }
     Ok(())
 }
 

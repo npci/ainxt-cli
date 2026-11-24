@@ -439,17 +439,17 @@ fn build_fork_placeholder(
 /// Called in `TaskResult::SessionLoaded` (not at dispatch time) because
 /// the child's session id is not known until the backend responds.
 pub(in crate::app::dispatch) fn build_child_fork_marker(
-    session_id: &str,
+    child_sid: &str,
     parent_sid: &str,
     worktree: bool,
     switch_hint: Option<&str>,
 ) -> String {
     let header = if let Some(cmd) = switch_hint {
         format!(
-            "Session {session_id} (forked from {parent_sid}) \u{2014} use {cmd} to switch between sessions",
+            "Session {child_sid} (forked from {parent_sid}) \u{2014} use {cmd} to switch between sessions",
         )
     } else {
-        format!("Session {session_id} (forked from {parent_sid})")
+        format!("Session {child_sid} (forked from {parent_sid})")
     };
     if worktree {
         header

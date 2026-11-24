@@ -28,10 +28,12 @@ pub use prod_mc_cli_chat_proxy_types::{
 
 /// HTTP client for interacting with the sandbox API via cli-chat-proxy.
 ///
-/// Path parameters (`session_id`, `environment_id`) are interpolated directly
-/// into URLs without percent-encoding. This is safe because these IDs are
-/// UUIDs in practice. If ID formats ever change to include URL-unsafe
-/// characters, the `format!()` calls should be updated to use percent-encoding.
+/// `session_id` path parameters are passed through
+/// [`crate::util::encode_path_segment`] (a no-op for the UUIDs used in
+/// practice) so an id can never escape its path segment. `environment_id`
+/// values are still interpolated directly; they are UUIDs in practice. If
+/// their format ever changes to include URL-unsafe characters, those
+/// `format!()` calls should be updated to use percent-encoding too.
 pub struct SandboxClient {
     client: reqwest::Client,
     base_url: String,
@@ -130,7 +132,11 @@ impl SandboxClient {
         session_id: &str,
         request: &SandboxTerminateRequest,
     ) -> Result<()> {
-        let mut url = format!("{}/sandbox/sessions/{}", self.base_url, session_id);
+        let mut url = format!(
+            "{}/sandbox/sessions/{}",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         if let Some(env_id) = &request.environment_id {
             url = format!("{}?environmentId={}", url, env_id);
         }
@@ -170,7 +176,11 @@ impl SandboxClient {
 
     /// Get sandbox session status.
     pub async fn get_session_status(&self, session_id: &str) -> Result<SandboxStatusResponse> {
-        let url = format!("{}/sandbox/sessions/{}/status", self.base_url, session_id);
+        let url = format!(
+            "{}/sandbox/sessions/{}/status",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self
             .auth_headers(self.client.get(&url))
             .await?
@@ -182,7 +192,11 @@ impl SandboxClient {
 
     /// Get sandbox session logs.
     pub async fn get_session_logs(&self, session_id: &str) -> Result<SandboxLogsResponse> {
-        let url = format!("{}/sandbox/sessions/{}/logs", self.base_url, session_id);
+        let url = format!(
+            "{}/sandbox/sessions/{}/logs",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self
             .auth_headers(self.client.get(&url))
             .await?
@@ -196,7 +210,8 @@ impl SandboxClient {
     pub async fn hibernate_session(&self, session_id: &str) -> Result<SandboxHibernateResponse> {
         let url = format!(
             "{}/sandbox/sessions/{}/hibernate",
-            self.base_url, session_id
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
         );
         let response = self
             .auth_headers(self.client.post(&url))
@@ -213,7 +228,11 @@ impl SandboxClient {
         session_id: &str,
         request: &SandboxRestoreRequest,
     ) -> Result<SandboxRestoreResponse> {
-        let url = format!("{}/sandbox/sessions/{}/restore", self.base_url, session_id);
+        let url = format!(
+            "{}/sandbox/sessions/{}/restore",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self
             .auth_headers(self.client.post(&url))
             .await?

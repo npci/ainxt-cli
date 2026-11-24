@@ -154,7 +154,12 @@ async fn connect_and_bind(
         .collect();
     eprintln!("[probe] servers visible to this user: {server_ids:?}");
 
-    let server_id = args.session_id.as_str();
+    // `--session-id` is the workspace-server's server_id (see `Args`).
+    let Args {
+        session_id: target_server,
+        ..
+    } = args;
+    let server_id = target_server.as_str();
     // Strict servers (`--require-explicit-toolset`) fail metadata-less binds
     // closed: bind with exactly the tools the checks below invoke.
     let metadata = json!({

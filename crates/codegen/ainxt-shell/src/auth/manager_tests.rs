@@ -356,8 +356,7 @@ async fn update_stores_team_token_under_base_scope() {
     let store = read_auth_json(&dir.path().join("auth.json")).unwrap();
     assert!(
         store.contains_key(&base_scope),
-        "team token must be stored under base scope '{}', found keys: {:?}",
-        base_scope,
+        "team token must be stored under the base scope, found keys: {:?}",
         store.keys().collect::<Vec<_>>()
     );
     assert_eq!(store.get(&base_scope).unwrap().key, "team-token");

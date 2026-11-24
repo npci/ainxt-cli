@@ -12,10 +12,10 @@ use std::borrow::Cow;
 /// Secret-shape then user-path scrub. Returns `Some` only when the input
 /// changed (owned, so callers can overwrite in place).
 pub(crate) fn redact_owned(input: &str) -> Option<String> {
-    let secrets = ainxt_secrets::redact_secrets(input);
-    match ainxt_secrets::redact_user_paths(secrets.as_ref()) {
+    let scrubbed = ainxt_secrets::redact_secrets(input);
+    match ainxt_secrets::redact_user_paths(scrubbed.as_ref()) {
         Cow::Owned(paths) => Some(paths),
-        Cow::Borrowed(_) => match secrets {
+        Cow::Borrowed(_) => match scrubbed {
             Cow::Owned(s) => Some(s),
             Cow::Borrowed(_) => None,
         },

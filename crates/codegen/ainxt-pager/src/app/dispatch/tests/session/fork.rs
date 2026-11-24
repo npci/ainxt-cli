@@ -415,7 +415,8 @@ fn dispatch_fork_no_flag_non_git_skips_modal_and_forks_without_worktree() {
     // Must skip the modal and emit ForkSession immediately.
     assert!(
         matches!(effects.as_slice(), [Effect::ForkSession { .. }]),
-        "non-git cwd must skip modal and emit ForkSession, got {effects:?}"
+        "non-git cwd must skip modal and emit ForkSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents.values().all(|a| a.question_view.is_none()),
@@ -831,7 +832,8 @@ fn dispatch_fork_worktree_mode_always_skips_modal_and_creates_worktree() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateWorktreeSession { .. })),
-        "expected CreateWorktreeSession, got {effects:?}"
+        "expected CreateWorktreeSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -848,7 +850,8 @@ fn dispatch_fork_worktree_mode_never_skips_modal_and_forks_in_cwd() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::ForkSession { .. })),
-        "expected ForkSession, got {effects:?}"
+        "expected ForkSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -896,7 +899,8 @@ fn dispatch_new_session_answered_no_worktree_does_not_cancel_old_turn() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateSession { .. })),
-        "expected CreateSession, got {effects:?}"
+        "expected CreateSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !effects
@@ -925,7 +929,8 @@ fn dispatch_new_session_answered_worktree_does_not_cancel_old_turn() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateWorktreeSession { .. })),
-        "expected CreateWorktreeSession, got {effects:?}"
+        "expected CreateWorktreeSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // Old agent's turn must still be running.
     assert!(
@@ -947,7 +952,8 @@ fn dispatch_new_session_worktree_mode_always_skips_modal_and_creates_worktree() 
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateWorktreeSession { .. })),
-        "expected CreateWorktreeSession, got {effects:?}"
+        "expected CreateWorktreeSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -964,7 +970,8 @@ fn dispatch_new_session_worktree_mode_never_skips_modal_and_creates_in_cwd() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CreateSession { .. })),
-        "expected CreateSession, got {effects:?}"
+        "expected CreateSession, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1043,7 +1050,8 @@ fn fork_session_ready_refuses_local_build_under_chat_mode() {
     let _ = std::fs::remove_dir_all(&sess_dir);
     assert!(
         effects.is_empty(),
-        "ForkSessionReady under --chat must refuse local Build, got {effects:?}"
+        "ForkSessionReady under --chat must refuse local Build, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !app.agents.contains_key(&AgentId(1)),

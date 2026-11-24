@@ -705,7 +705,7 @@ fn switch_model_complete_persists_resolved_effort_from_catalog_meta() {
                      fresh chat does not reset reasoning to a stale default",
             );
         }
-        other => panic!("expected PersistPreferredModel, got {other:?}"),
+        other => panic!("expected PersistPreferredModel, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -767,7 +767,7 @@ fn switch_to_non_reasoning_model_clears_persisted_effort() {
                 "persisted effort must be None so config.toml clears the stale value",
             );
         }
-        other => panic!("expected PersistPreferredModel, got {other:?}"),
+        other => panic!("expected PersistPreferredModel, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
 }
 
@@ -1576,7 +1576,8 @@ fn gate_refreshed_emits_check_subscription_on_gate_lift() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CheckSubscription { verify: None })),
-        "must emit CheckSubscription to refresh JWT; got: {effects:?}"
+        "must emit CheckSubscription to refresh JWT; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1652,13 +1653,15 @@ fn gate_refreshed_newly_blocked_defers_gate_for_verification() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CheckSubscription { verify: Some(_) })),
-        "must live-check before showing the paywall; got: {effects:?}"
+        "must live-check before showing the paywall; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         effects
             .iter()
             .any(|e| matches!(e, Effect::ScheduleGateVerifyTimeout { .. })),
-        "must arm the verification timeout; got: {effects:?}"
+        "must arm the verification timeout; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1738,7 +1741,8 @@ fn verify_check_failure_promotes_pending_gate() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::SchedulePaywallCheck)),
-        "freshly shown gate must arm the 5s auto-lift chain; got: {effects:?}"
+        "freshly shown gate must arm the 5s auto-lift chain; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1837,7 +1841,8 @@ fn gate_verify_timeout_promotes_pending_gate() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::SchedulePaywallCheck)),
-        "promoted gate must schedule the 5s chain; got: {effects:?}"
+        "promoted gate must schedule the 5s chain; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1934,7 +1939,8 @@ fn verified_gate_via_check_complete_starts_paywall_chain() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::SchedulePaywallCheck)),
-        "verified gate must schedule the 5s chain; got: {effects:?}"
+        "verified gate must schedule the 5s chain; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 
     // Steady-state paywall-poller responses (already gated) must NOT fan
@@ -1953,7 +1959,8 @@ fn verified_gate_via_check_complete_starts_paywall_chain() {
     );
     assert!(
         effects.is_empty(),
-        "already-gated check responses must not schedule more timers; got: {effects:?}"
+        "already-gated check responses must not schedule more timers; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1981,7 +1988,8 @@ fn gate_refreshed_without_gate_clears_pending_verification() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CheckSubscription { verify: None })),
-        "settings-confirmed lift of a pending gate must refresh the JWT; got: {effects:?}"
+        "settings-confirmed lift of a pending gate must refresh the JWT; got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     // The still-armed timer must find nothing to promote.
     dispatch_task_result(TaskResult::GateVerifyTimeout { generation }, &mut app);

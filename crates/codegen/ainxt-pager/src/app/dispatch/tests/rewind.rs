@@ -167,7 +167,8 @@ fn drive_inline_submit_to_execute(app: &mut AppView) -> Vec<Effect> {
     let effects = dispatch(Action::InlineEditSubmit, app);
     assert!(
         matches!(&effects[0], Effect::FetchRewindPoints { .. }),
-        "got {effects:?}"
+        "got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     dispatch(points_loaded(id, false), app);
     // Target 0 is the newest prompt: conversation-only inserts its
@@ -272,7 +273,8 @@ fn classic_rewind_mode_select_keeps_files_only_row() {
     let effects = dispatch(Action::Rewind, &mut app);
     assert!(
         matches!(&effects[0], Effect::FetchRewindPoints { .. }),
-        "got {effects:?}"
+        "got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     dispatch(points_loaded(id, true), &mut app);
 
@@ -382,7 +384,8 @@ fn inline_edit_conversation_only_success_resubmits_and_closes_editor() {
         effects.iter().any(
             |e| matches!(e, Effect::SendPrompt { text, .. } if text == "fix the bug properly")
         ),
-        "edited prompt must be sent, got {effects:?}"
+        "edited prompt must be sent, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = &app.agents[&id];
     assert!(agent.inline_edit.is_none(), "editor closed on success");
@@ -418,7 +421,8 @@ fn inline_edit_all_mode_previews_confirms_and_resubmits() {
     );
     assert!(
         matches!(&effects[0], Effect::RewindPreview { .. }),
-        "file changes present → preview first, got {effects:?}"
+        "file changes present → preview first, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents[&id].pending_inline_resubmit.is_none(),
@@ -470,7 +474,8 @@ fn inline_edit_all_mode_previews_confirms_and_resubmits() {
         effects.iter().any(
             |e| matches!(e, Effect::SendPrompt { text, .. } if text == "fix the bug properly")
         ),
-        "got {effects:?}"
+        "got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents[&id].inline_edit.is_none(),
@@ -518,7 +523,8 @@ fn inline_edit_files_only_success_prefills_composer_without_resubmit() {
         effects
             .iter()
             .all(|e| !matches!(e, Effect::SendPrompt { .. })),
-        "files-only must not resubmit, got {effects:?}"
+        "files-only must not resubmit, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = &app.agents[&id];
     assert!(agent.inline_edit.is_none(), "editor closed");
@@ -576,7 +582,7 @@ fn inline_edit_busy_submit_cancel_offer_confirm_cancels_and_fetches_points() {
     app.agents.get_mut(&id).unwrap().session.state = crate::app::agent::AgentState::TurnRunning;
 
     let effects = dispatch(Action::InlineEditSubmit, &mut app);
-    assert!(effects.is_empty(), "no effects yet: {effects:?}");
+    assert!(effects.is_empty(), "no effects yet: {effects:?}", effects = crate::app::actions::effect_kinds(&effects));
     {
         let agent = &app.agents[&id];
         let state = agent.rewind_state.as_ref().unwrap();
@@ -595,7 +601,8 @@ fn inline_edit_busy_submit_cancel_offer_confirm_cancels_and_fetches_points() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::FetchRewindPoints { .. })),
-        "got {effects:?}"
+        "got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = &app.agents[&id];
     let state = agent.rewind_state.as_ref().unwrap();
@@ -725,7 +732,8 @@ fn inline_edit_resubmit_sends_slash_text_literally() {
         effects.iter().any(
             |e| matches!(e, Effect::SendPrompt { text, .. } if text == "/etc/hosts is wrong, fix it")
         ),
-        "slash-lookalike edit must be sent as a prompt, got {effects:?}"
+        "slash-lookalike edit must be sent as a prompt, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -751,7 +759,8 @@ fn inline_edit_rewind_success_after_view_switch_appends_to_draft() {
         effects
             .iter()
             .all(|e| !matches!(e, Effect::SendPrompt { .. })),
-        "no resubmit while the view is elsewhere, got {effects:?}"
+        "no resubmit while the view is elsewhere, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     let agent = &app.agents[&id];
     assert_eq!(

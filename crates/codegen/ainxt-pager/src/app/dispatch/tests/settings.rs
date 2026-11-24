@@ -19,6 +19,7 @@ fn toggle_vim_mode_flips_state_and_persistence_cache() {
         1,
         "toggle must emit exactly one Effect::PersistSetting so the \
              new value lands in config.toml, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         matches!(
@@ -30,7 +31,7 @@ fn toggle_vim_mode_flips_state_and_persistence_cache() {
             }
         ),
         "unexpected effect: {:?}",
-        effects[0],
+        crate::app::actions::effect_kinds(&effects[0]),
     );
     assert!(
         app.agents[&id].vim_mode,
@@ -51,6 +52,7 @@ fn toggle_vim_mode_flips_state_and_persistence_cache() {
             }]
         ),
         "second toggle must also persist, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(!app.agents[&id].vim_mode, "toggling again flips it back");
     assert!(
@@ -282,6 +284,7 @@ fn slash_model_valid_dispatches_set_default_model_with_switch_and_persist() {
         effects.len(),
         2,
         "expected PersistSetting + SwitchModel effects, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         matches!(
@@ -292,13 +295,13 @@ fn slash_model_valid_dispatches_set_default_model_with_switch_and_persist() {
             }
         ),
         "first effect must be PersistSetting(default_model), got {:?}",
-        effects[0],
+        crate::app::actions::effect_kinds(&effects[0]),
     );
     assert!(
         matches!(& effects[1], Effect::SwitchModel { model_id : mid, .. } if mid == &
         model_id),
         "second effect must be SwitchModel(<resolved id>), got {:?}",
-        effects[1],
+        crate::app::actions::effect_kinds(&effects[1]),
     );
     assert!(app.agents[&id].session.model_switch_pending);
 }
@@ -366,7 +369,7 @@ fn set_compact_mode_emits_persist_setting_with_correct_payload() {
             assert_eq!(value, &SettingValue::Bool(true));
             assert_eq!(rollback_value, &SettingValue::Bool(false));
         }
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert!(app.current_ui.compact_mode);
 }
@@ -519,7 +522,7 @@ fn toggle_off_while_short_keeps_render_compact_and_persists_user_value() {
             assert_eq!(*key, "compact_mode");
             assert_eq!(value, &SettingValue::Bool(false), "persists the USER value");
         }
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     let toast = read_toast(&app);
     assert!(
@@ -543,7 +546,7 @@ fn set_timestamps_emits_persist_setting_with_correct_payload() {
             assert_eq!(value, &SettingValue::Bool(false));
             assert_eq!(rollback_value, &SettingValue::Bool(true));
         }
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert_eq!(app.current_ui.show_timestamps, Some(false));
 }
@@ -564,7 +567,7 @@ fn set_timeline_emits_persist_setting_with_correct_payload() {
             assert_eq!(value, &SettingValue::Bool(!default_on));
             assert_eq!(rollback_value, &SettingValue::Bool(default_on));
         }
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert_eq!(app.current_ui.show_timeline, Some(!default_on));
     assert_eq!(
@@ -605,7 +608,7 @@ fn set_simple_mode_emits_persist_setting_with_correct_payload() {
             assert_eq!(*key, "simple_mode");
             assert_eq!(value, &SettingValue::Bool(false));
         }
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert_eq!(app.current_ui.simple_mode, Some(false));
 }
@@ -703,6 +706,7 @@ fn dispatch_confirm_reset_setting_cancel_preserves_modal_state() {
     assert!(
         effects.is_empty(),
         "Cancel branch must not emit any Effects, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.current_ui.compact_mode,
@@ -744,6 +748,7 @@ fn dispatch_confirm_reset_setting_reset_dispatches_typed_setter_for_pager_bool()
     assert!(
         effects.is_empty(),
         "PAGER reset must NOT emit Effects (in-memory only), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !app.agents[&AgentId(0)].multiline_mode,
@@ -770,6 +775,7 @@ fn dispatch_confirm_reset_setting_reset_on_already_default_is_no_op_with_toast()
     assert!(
         effects.is_empty(),
         "idempotent reset must emit NO Effects, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(!app.current_ui.compact_mode);
     let agent = app.agents.get(&AgentId(0)).expect("agent must exist");
@@ -927,8 +933,10 @@ fn every_persisting_setting_has_rollback_arm() {
             assert_ne!(
                 toast.as_deref(),
                 Some(crate::app::dispatch::ROLLBACK_NO_ARM_TOAST),
-                "Setting `{key}` emits Effect::PersistSetting but apply_setting_rollback has \
-                     no arm — a failed persist diverges in-memory state from config.toml. Add an arm.",
+                "Resetting setting `{reset_key}` emits an Effect::PersistSetting whose key has no \
+                     apply_setting_rollback arm — a failed persist diverges in-memory state from \
+                     config.toml. Add an arm.",
+                reset_key = meta.key,
             );
         }
     }
@@ -969,7 +977,7 @@ fn clear_default_model_persists_but_keeps_live_current() {
         matches!(& effects[0], Effect::PersistSetting { key : "default_model", value :
         crate ::settings::SettingValue::String(s), .. } if s.is_empty()),
         "expected PersistSetting(default_model, ''), got {:?}",
-        effects[0],
+        crate::app::actions::effect_kinds(&effects[0]),
     );
     assert_eq!(
         app.agents[&agent_id].session.models.current,
@@ -1035,6 +1043,7 @@ fn set_default_model_idempotent_when_already_current() {
     assert!(
         effects.is_empty(),
         "re-dispatching same model must be idempotent (no effects), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// `clamp_max_thoughts_width` clamps
@@ -1066,7 +1075,7 @@ fn pr13_set_show_tips_emits_persist_with_rollback() {
             assert_eq!(*value, SettingValue::Bool(false));
             assert_eq!(*rollback_value, SettingValue::Bool(true));
         }
-        other => panic!("expected PersistSetting effect, got {other:?}"),
+        other => panic!("expected PersistSetting effect, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert_eq!(app.show_tips, Some(false));
     let effects = dispatch(Action::SetShowTips(true), &mut app);
@@ -1080,7 +1089,7 @@ fn pr13_set_show_tips_emits_persist_with_rollback() {
             assert_eq!(*value, SettingValue::Bool(true));
             assert_eq!(*rollback_value, SettingValue::Bool(false));
         }
-        other => panic!("expected PersistSetting effect, got {other:?}"),
+        other => panic!("expected PersistSetting effect, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert_eq!(app.show_tips, Some(true));
 }
@@ -1094,7 +1103,8 @@ fn pr13_set_show_tips_idempotent_re_commit() {
     let effects = dispatch(Action::SetShowTips(false), &mut app);
     assert!(
         effects.is_empty(),
-        "re-committing the same value must be idempotent (no effects), got {effects:?}"
+        "re-committing the same value must be idempotent (no effects), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// The first-ever commit of the default value MUST persist
@@ -1127,7 +1137,8 @@ fn pr13_set_show_tips_second_commit_of_default_no_ops() {
     assert!(
         effects.is_empty(),
         "second commit of the default must hit the idempotent fast-path \
-             (effects.is_empty()), got {effects:?}"
+             (effects.is_empty()), got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 /// Rollback from prev=None state restores `None` (not
@@ -1400,7 +1411,7 @@ fn set_simple_mode_no_op_when_no_active_agent() {
     assert_eq!(effects.len(), 1);
     match &effects[0] {
         Effect::PersistSetting { key, .. } => assert_eq!(*key, "simple_mode"),
-        other => panic!("expected PersistSetting, got {other:?}"),
+        other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     }
     assert_eq!(app.current_ui.simple_mode, Some(true));
 }
@@ -1519,6 +1530,7 @@ fn set_multiline_mode_mutates_agent_and_emits_no_effect() {
     assert!(
         effects.is_empty(),
         "PAGER-owned setter must NOT emit Effect::PersistSetting, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents[&AgentId(0)].multiline_mode,
@@ -1755,6 +1767,7 @@ fn set_vim_mode_mutates_all_agents_and_cache_no_effect() {
         effects.len(),
         1,
         "SHELL-owned setter must emit exactly one Effect::PersistSetting, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         matches!(
@@ -1766,7 +1779,7 @@ fn set_vim_mode_mutates_all_agents_and_cache_no_effect() {
             }
         ),
         "unexpected effect: {:?}",
-        effects[0],
+        crate::app::actions::effect_kinds(&effects[0]),
     );
     assert!(
         crate::appearance::cache::load_vim_mode(),
@@ -1813,7 +1826,8 @@ fn set_keep_text_selection_emits_persist_and_updates_cache() {
                 rollback_value: crate::settings::SettingValue::Enum("flash"),
             }]
         ),
-        "unexpected effects: {effects:?}"
+        "unexpected effects: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 #[test]
@@ -1874,6 +1888,7 @@ fn set_show_thinking_blocks_applies_persists_and_rolls_back() {
             }]
         ),
         "expected exactly one PersistSetting effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(!crate::appearance::cache::load_show_thinking_blocks());
     let effects = dispatch(Action::SetShowThinkingBlocks(false), &mut app);
@@ -1903,6 +1918,7 @@ fn set_group_tool_verbs_applies_persists_and_rolls_back() {
             }]
         ),
         "expected exactly one PersistSetting effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(!crate::appearance::cache::load_group_tool_verbs());
     let effects = dispatch(Action::SetGroupToolVerbs(false), &mut app);
@@ -2017,6 +2033,7 @@ fn set_collapsed_edit_blocks_applies_persists_and_rolls_back() {
             }]
         ),
         "expected exactly one PersistSetting effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(crate::appearance::cache::load_collapsed_edit_blocks());
     let effects = dispatch(Action::SetCollapsedEditBlocks(true), &mut app);
@@ -2315,6 +2332,7 @@ fn set_respect_manual_folds_applies_persists_and_rolls_back() {
             }]
         ),
         "expected exactly one PersistSetting effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(app.appearance.scrollback.scroll.respect_manual_folds);
     for (id, agent) in &app.agents {
@@ -2366,6 +2384,7 @@ fn set_render_mermaid_persists_and_is_idempotent() {
         effects.len(),
         1,
         "SHELL-owned setter must emit one Effect::PersistSetting, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         matches!(
@@ -2377,7 +2396,7 @@ fn set_render_mermaid_persists_and_is_idempotent() {
             }
         ),
         "unexpected effect: {:?}",
-        effects[0],
+        crate::app::actions::effect_kinds(&effects[0]),
     );
     assert!(read_toast(&app).contains("Mermaid"));
     app.agents.get_mut(&AgentId(0)).unwrap().toast = None;
@@ -2429,6 +2448,7 @@ fn set_scroll_speed_updates_cache_and_clamps() {
         effects.len(),
         1,
         "SHELL-owned setter must emit exactly one Effect::PersistSetting, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         matches!(
@@ -2440,7 +2460,7 @@ fn set_scroll_speed_updates_cache_and_clamps() {
             }
         ),
         "unexpected effect: {:?}",
-        effects[0],
+        crate::app::actions::effect_kinds(&effects[0]),
     );
     assert_eq!(crate::appearance::cache::load_scroll_speed(), 75);
     let _ = dispatch(Action::SetScrollSpeed(250), &mut app);
@@ -2499,6 +2519,7 @@ fn set_scroll_mode_updates_cache_and_scroll_config() {
             }]
         ),
         "unexpected effects: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(
         crate::appearance::cache::load_scroll_mode(),
@@ -2532,6 +2553,7 @@ fn set_invert_scroll_updates_cache_and_scroll_config() {
             }]
         ),
         "unexpected effects: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(crate::appearance::cache::load_invert_scroll());
     assert!(
@@ -2564,6 +2586,7 @@ fn set_scroll_lines_updates_cache_and_clamps() {
             }]
         ),
         "unexpected effects: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(crate::appearance::cache::load_scroll_lines(), Some(5));
     let debug = format!("{:?}", app.scroll_config);
@@ -2748,7 +2771,7 @@ fn set_theme_emits_persist_setting_with_correct_payload() {
                 assert_eq!(*value, SettingValue::Enum("ainxtday"));
                 assert_eq!(*rollback_value, SettingValue::Enum("ainxtnight"));
             }
-            other => panic!("expected PersistSetting, got {other:?}"),
+            other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
         }
         assert_eq!(app.current_ui.theme.as_deref(), Some("ainxtday"));
         assert!(
@@ -2780,7 +2803,7 @@ fn set_auto_dark_theme_emits_persist_setting_with_correct_payload() {
                 assert_eq!(*value, SettingValue::Enum("ainxtday"));
                 assert_eq!(*rollback_value, SettingValue::Enum("ainxtnight"));
             }
-            other => panic!("expected PersistSetting, got {other:?}"),
+            other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
         }
         assert_eq!(app.current_ui.auto_dark_theme.as_deref(), Some("ainxtday"));
     });
@@ -2802,7 +2825,7 @@ fn set_auto_light_theme_emits_persist_setting_with_correct_payload() {
                 assert_eq!(*value, SettingValue::Enum("ainxtnight"));
                 assert_eq!(*rollback_value, SettingValue::Enum("ainxtday"));
             }
-            other => panic!("expected PersistSetting, got {other:?}"),
+            other => panic!("expected PersistSetting, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
         }
         assert_eq!(
             app.current_ui.auto_light_theme.as_deref(),
@@ -2825,7 +2848,8 @@ fn preview_theme_emits_no_persist_effect_and_no_current_ui_mutation() {
             .count();
         assert_eq!(
             persist_count, 0,
-            "preview must NOT emit PersistSetting, got {persist_count} (effects: {effects:?})",
+            "preview must NOT emit PersistSetting (effects: {effects:?})",
+            effects = crate::app::actions::effect_kinds(&effects),
         );
         assert_eq!(
             app.current_ui.theme, initial,

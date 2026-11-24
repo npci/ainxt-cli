@@ -20,7 +20,7 @@ fn queued_prompt_rpc_error_does_not_kill_running_turn() {
     let effects = dispatch(Action::SendPrompt("running".into()), &mut app);
     let running_pid = match &effects[0] {
         Effect::SendPrompt { prompt_id, .. } => prompt_id.clone(),
-        other => panic!("expected SendPrompt, got {other:?}"),
+        other => panic!("expected SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     };
     assert!(app.agents[&id].session.state.is_turn_running());
     assert_eq!(
@@ -33,7 +33,7 @@ fn queued_prompt_rpc_error_does_not_kill_running_turn() {
     let effects = dispatch(Action::SendPrompt("queued".into()), &mut app);
     let queued_pid = match &effects[0] {
         Effect::SendPrompt { prompt_id, .. } => prompt_id.clone(),
-        other => panic!("expected immediate SendPrompt, got {other:?}"),
+        other => panic!("expected immediate SendPrompt, got {other:?}", other = crate::app::actions::effect_kinds(&other)),
     };
     assert_ne!(running_pid, queued_pid);
 
@@ -53,7 +53,8 @@ fn queued_prompt_rpc_error_does_not_kill_running_turn() {
     // Discarded: no effects, running turn untouched, no "Turn failed" block.
     assert!(
         effects.is_empty(),
-        "a queued prompt's RPC error must be discarded, got {effects:?}"
+        "a queued prompt's RPC error must be discarded, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         app.agents[&id].session.state.is_turn_running(),
@@ -300,7 +301,8 @@ fn cancel_turn_leaves_shared_queue_for_agent_to_drain() {
         effects
             .iter()
             .any(|e| matches!(e, Effect::CancelTurn { .. })),
-        "must emit CancelTurn, got {effects:?}"
+        "must emit CancelTurn, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(
         !effects
@@ -495,7 +497,8 @@ fn cancel_turn_when_already_cancelling_resends_cancel() {
                 ..
             }]
         ),
-        "cancel while cancelling must re-send the cancel, got {effects:?}"
+        "cancel while cancelling must re-send the cancel, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert!(app.agents[&id].session.state.is_cancelling());
 }

@@ -506,20 +506,20 @@ pub async fn materialize_startup_for_cwd(
             })
         }
         SessionStartupIntent::Resume {
-            session_id: Some(session_id),
+            session_id: Some(requested_id),
             ..
         } => {
             if ctx.chat_mode {
-                if !valid_conversation_id_shape(&session_id) {
-                    anyhow::bail!("invalid conversation id {session_id:?}");
+                if !valid_conversation_id_shape(&requested_id) {
+                    anyhow::bail!("invalid conversation id {requested_id:?}");
                 }
                 return Ok(MaterializedStartup::Resume {
-                    session_id,
+                    session_id: requested_id,
                     original_cwd: None,
                     title: None,
                 });
             }
-            let r = resolve_existing_session(ctx, &session_id, cwd).await?;
+            let r = resolve_existing_session(ctx, &requested_id, cwd).await?;
             Ok(MaterializedStartup::Resume {
                 session_id: r.id,
                 original_cwd: r.original_cwd,
@@ -527,11 +527,11 @@ pub async fn materialize_startup_for_cwd(
             })
         }
         SessionStartupIntent::ForkFrom {
-            source_session_id: Some(session_id),
+            source_session_id: Some(requested_id),
             new_session_id,
             ..
         } => {
-            let r = resolve_existing_session(ctx, &session_id, cwd).await?;
+            let r = resolve_existing_session(ctx, &requested_id, cwd).await?;
             if let Some(ref nid) = new_session_id {
                 let new_cwd = effective_fork_new_cwd(cwd, r.original_cwd.as_deref());
                 ensure_session_id_available(nid, &new_cwd)?;
@@ -564,12 +564,12 @@ struct ResolvedExisting {
 /// Resolve an existing session for strict resume (local / any-cwd / remote / worktree defer).
 async fn resolve_existing_session(
     ctx: MaterializeCtx,
-    session_id: &str,
+    requested_id: &str,
     cwd: &str,
 ) -> anyhow::Result<ResolvedExisting> {
-    if let Some(local_id) = ainxt_shell::session::resolve_local_session(session_id, cwd) {
+    if let Some(local_id) = ainxt_shell::session::resolve_local_session(requested_id, cwd) {
         tracing::info!(
-            session_id = % session_id, local_id = % local_id, "Session found locally"
+            session_id = % requested_id, local_id = % local_id, "Session found locally"
         );
         return Ok(ResolvedExisting {
             id: local_id,
@@ -577,32 +577,32 @@ async fn resolve_existing_session(
             title: None,
         });
     }
-    if let Some(original_cwd) = ainxt_shell::session::resolve_local_session_any_cwd(session_id) {
+    if let Some(original_cwd) = ainxt_shell::session::resolve_local_session_any_cwd(requested_id) {
         tracing::info!(
-            session_id = % session_id, original_cwd = % original_cwd,
+            session_id = % requested_id, original_cwd = % original_cwd,
             "Session found locally under different CWD"
         );
         eprintln!(
             "Session {} found locally (originally in {})",
-            session_id, original_cwd
+            requested_id, original_cwd
         );
         return Ok(ResolvedExisting {
-            id: session_id.to_string(),
+            id: requested_id.to_string(),
             original_cwd: Some(PathBuf::from(original_cwd)),
             title: None,
         });
     }
     if ctx.has_worktree {
         tracing::info!(
-            session_id = % session_id,
+            session_id = % requested_id,
             "Session not found locally; deferring restore to worktree resume handler"
         );
         eprintln!(
             "Session {} not found locally; it will be restored into the new worktree.",
-            session_id
+            requested_id
         );
         return Ok(ResolvedExisting {
-            id: session_id.to_string(),
+            id: requested_id.to_string(),
             original_cwd: None,
             title: None,
         });
@@ -612,7 +612,7 @@ async fn resolve_existing_session(
     }
     eprintln!(
         "Session {} not found locally, restoring from remote...",
-        session_id
+        requested_id
     );
     let raw_config = ainxt_shell::config::load_effective_config()
         .map_err(|e| anyhow::anyhow!("Failed to load config: {}", e))?;
@@ -653,17 +653,21 @@ async fn resolve_existing_session(
     let result = restore_session_with_storage(
         &registry_client,
         &storage_client,
-        session_id,
+        requested_id,
         cwd,
         None,
         Some(progress),
     )
     .await
     .map_err(|e| anyhow::anyhow!("Failed to restore session from remote: {:#}", e))?;
-    let effective_id = if result.local_session_id.is_empty() {
-        session_id.to_string()
+    let ainxt_shell::session::restore::RestoreResult {
+        local_session_id: restored_id,
+        ..
+    } = result;
+    let effective_id = if restored_id.is_empty() {
+        requested_id.to_string()
     } else {
-        result.local_session_id
+        restored_id
     };
     eprintln!("  Restored as local session {}", effective_id);
     Ok(ResolvedExisting {
@@ -676,6 +680,15 @@ async fn resolve_existing_session(
 mod tests {
     use super::*;
     use clap::Parser;
+    /// Variant name only, for panic messages (payloads hold session ids).
+    fn startup_kind(startup: &MaterializedStartup) -> &'static str {
+        match startup {
+            MaterializedStartup::NewAuto => "NewAuto",
+            MaterializedStartup::NewWithId { .. } => "NewWithId",
+            MaterializedStartup::Resume { .. } => "Resume",
+            MaterializedStartup::Fork { .. } => "Fork",
+        }
+    }
     fn parse(args: &[&str]) -> PagerArgs {
         PagerArgs::try_parse_from(args).unwrap()
     }
@@ -932,7 +945,7 @@ mod tests {
                 assert!(original_cwd.is_none());
                 assert!(title.is_none());
             }
-            other => panic!("expected Resume, got {other:?}"),
+            other => panic!("expected Resume, got {other:?}", other = startup_kind(&other)),
         }
     }
     /// Chat-mode passthrough rejects ids that could escape the sessions tree
@@ -1062,7 +1075,7 @@ mod tests {
                     "cwd-local Build collision must still be refused after passthrough"
                 );
             }
-            other => panic!("expected Resume, got {other:?}"),
+            other => panic!("expected Resume, got {other:?}", other = startup_kind(&other)),
         }
     }
 }

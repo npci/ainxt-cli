@@ -1605,7 +1605,15 @@ expose_image_base64 = true
             acp::McpServer::Http(acp::McpServerHttp { url, .. }) => {
                 assert_eq!(url, "https://fallback.example.com/mcp");
             }
-            other => panic!("expected Http, got {:?}", other),
+            other => panic!(
+                "expected Http, got {:?}",
+                match other {
+                    acp::McpServer::Http(_) => "Http",
+                    acp::McpServer::Sse(_) => "Sse",
+                    acp::McpServer::Stdio(_) => "Stdio",
+                    _ => "other",
+                }
+            ),
         }
     }
 

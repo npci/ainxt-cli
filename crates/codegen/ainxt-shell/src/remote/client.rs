@@ -447,7 +447,11 @@ impl BackendClient {
         metadata: &ExportedMetadata,
         agent_id: &str,
     ) -> Result<(), BackendError> {
-        let url = format!("{}/sessions/{}", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let request = UpsertSessionRequest {
             session: SessionUpdate {
                 title: metadata.title.clone(),
@@ -473,7 +477,11 @@ impl BackendClient {
         messages: &[ExportedMessage],
         metadata: Option<&ExportedMetadata>,
     ) -> Result<(), BackendError> {
-        let url = format!("{}/sessions/{}/data", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/data",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let request = SaveDataRequest {
             messages: messages.to_vec(),
             metadata: metadata.and_then(|m| serde_json::to_value(m).ok()),
@@ -508,7 +516,11 @@ impl BackendClient {
         &self,
         session_id: &str,
     ) -> Result<LoadDataResponse, BackendError> {
-        let url = format!("{}/sessions/{}/data", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/data",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self.send_with_auth(self.reqwest_client.get(&url)).await?;
         if response.status().as_u16() == 404 {
             return Err(BackendError::SessionNotFound {
@@ -524,7 +536,11 @@ impl BackendClient {
         Ok(data)
     }
     pub async fn create_share_link(&self, session_id: &str) -> Result<ShareResponse, BackendError> {
-        let url = format!("{}/sessions/{}/share", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/share",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self.send_with_auth(self.reqwest_client.post(&url)).await?;
         if !response.status().is_success() {
             let status = response.status().as_u16();
@@ -535,7 +551,11 @@ impl BackendClient {
         Ok(share_response)
     }
     pub async fn delete_session_data(&self, session_id: &str) -> Result<(), BackendError> {
-        let url = format!("{}/sessions/{}/data", self.base_url, session_id);
+        let url = format!(
+            "{}/sessions/{}/data",
+            self.base_url,
+            crate::util::encode_path_segment(session_id)
+        );
         let response = self
             .send_with_auth(self.reqwest_client.delete(&url))
             .await?;

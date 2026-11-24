@@ -1276,9 +1276,10 @@ fn print_human(r: &InspectReport) {
     if let Some(ref root) = r.project_root {
         println!("  {TREE} Git root: {}", root);
     }
+    let is_trusted: bool = r.project_trusted;
     println!(
         "  {TREE} Project trusted: {}",
-        if r.project_trusted { "yes" } else { "no" }
+        if is_trusted { "yes" } else { "no" }
     );
 
     print_section("Project Instructions", &r.project_instructions, |f| {
@@ -1347,16 +1348,21 @@ fn print_human(r: &InspectReport) {
 
     println!();
     println!("  Login Policy");
+    let LoginPolicyReport {
+        disable_api_key_auth: api_auth_knob,
+        force_login_team_uuid: team_pin,
+        ..
+    } = &r.login_policy;
     println!(
         "  {TREE} disable_api_key_auth: {}",
-        match r.login_policy.disable_api_key_auth {
+        match api_auth_knob {
             Some(v) => v.to_string(),
             None => "(unset)".to_string(),
         }
     );
     println!(
         "  {TREE} force_login_team_uuid: {}",
-        format_force_login_team(&r.login_policy.force_login_team_uuid)
+        format_force_login_team(team_pin)
     );
     println!(
         "  {TREE} api_key_auth_disabled: {}",

@@ -460,7 +460,8 @@ fn auth_complete_retries_stashed_prompt_from_dashboard() {
         effects
             .iter()
             .any(|effect| matches!(effect, Effect::SendPromptBlocks { .. })),
-        "stash must be retried even when login returns to the dashboard, got: {effects:?}"
+        "stash must be retried even when login returns to the dashboard, got: {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -1345,7 +1346,8 @@ fn dashboard_second_stash_does_not_overwrite_first() {
     });
     assert!(
         reply_sent,
-        "the stashed peek reply must reach the peeked agent with the image; effects = {effects:?}"
+        "the stashed peek reply must reach the peeked agent with the image; effects = {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
 }
 
@@ -3821,6 +3823,7 @@ fn dashboard_rename_end_to_end_top_level_row() {
                 if *agent_id == id && title == "My renamed session"
         )),
         "commit must emit a RenameSession effect, got {effects:?}",
+        effects = crate::app::actions::effect_kinds(&effects),
     );
     assert_eq!(
         app.agents.get(&id).and_then(|a| a.display_name.clone()),

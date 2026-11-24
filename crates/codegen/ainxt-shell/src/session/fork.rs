@@ -57,7 +57,7 @@ pub struct ForkSessionResponse {
 ///
 /// Uses a plain UUIDv7 -- no prefix or source embedding. This keeps IDs
 /// a constant 36 chars regardless of how many fork rounds occur.
-fn generate_fork_session_id(_source_id: &str) -> String {
+fn generate_fork_id(_source_id: &str) -> String {
     uuid::Uuid::now_v7().to_string()
 }
 
@@ -82,7 +82,7 @@ pub async fn fork_session(
     let new_session_id = request
         .new_session_id
         .clone()
-        .unwrap_or_else(|| generate_fork_session_id(&request.source_session_id));
+        .unwrap_or_else(|| generate_fork_id(&request.source_session_id));
 
     let target_info = Info {
         id: acp::SessionId::new(new_session_id.clone()),
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn test_generate_fork_session_id_format() {
-        let fork_id = generate_fork_session_id("abc123");
+        let fork_id = generate_fork_id("abc123");
 
         // Should be a valid UUIDv7 (36 chars with dashes)
         assert_eq!(
@@ -226,7 +226,7 @@ mod tests {
         // Generate multiple IDs rapidly and ensure they're all unique
         let mut ids = std::collections::HashSet::new();
         for _ in 0..100 {
-            let fork_id = generate_fork_session_id("any-source");
+            let fork_id = generate_fork_id("any-source");
             assert_eq!(fork_id.len(), 36);
             ids.insert(fork_id);
         }
@@ -238,9 +238,9 @@ mod tests {
     #[test]
     fn test_generate_fork_session_id_constant_length() {
         // Forking from already-forked sessions should produce same-length IDs
-        let id1 = generate_fork_session_id("019c43b5-c4ae-7190-b058-693e24669ba9");
-        let id2 = generate_fork_session_id(&id1); // fork of fork
-        let id3 = generate_fork_session_id(&id2); // fork of fork of fork
+        let id1 = generate_fork_id("019c43b5-c4ae-7190-b058-693e24669ba9");
+        let id2 = generate_fork_id(&id1); // fork of fork
+        let id3 = generate_fork_id(&id2); // fork of fork of fork
 
         assert_eq!(id1.len(), 36);
         assert_eq!(id2.len(), 36);
